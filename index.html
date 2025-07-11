@@ -75,8 +75,7 @@
         let torpedoTargets = [];
         let loseReason = 'asteroid';
         let explosionFrame = 0;
-        let shieldUp = true;
-        let shieldRegenTimeout;
+        let klingonInterval;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
@@ -124,8 +123,8 @@
             goalX = WORLD_WIDTH - 1;
             goalY = Math.floor(Math.random() * HEIGHT);
 
-            // Place random asteroids
-            for (let i = 0; i < 40; i++) {
+            // Place random asteroids (reduced to 20)
+            for (let i = 0; i < 20; i++) {
                 let ax = Math.floor(Math.random() * WORLD_WIDTH);
                 let ay = Math.floor(Math.random() * HEIGHT);
                 if ((ax !== playerX || ay !== playerY) && (ax !== goalX || ay !== goalY)) {
@@ -136,9 +135,9 @@
             grid[playerY][playerX] = ENTERPRISE;
             grid[goalY][goalX] = GOAL;
 
-            // Place 5 Klingons
+            // Place 3 Klingons
             klingons = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 3; i++) {
                 let kx, ky, dist;
                 do {
                     kx = Math.floor(Math.random() * WORLD_WIDTH);
@@ -146,7 +145,7 @@
                     dist = Math.abs(kx - playerX) + Math.abs(ky - playerY);
                 } while (grid[ky][kx] !== EMPTY || dist <= 6 || (kx === goalX && ky === goalY));
                 grid[ky][kx] = KLINGON;
-                klingons.push({x: kx, y: ky, facing: Math.floor(Math.random() * 4), cloaked: true});
+                klingons.push({x: kx, y: ky, facing: Math.floor(Math.random() * 4), cloaked: true, cloakStart: Date.now(), decloakStart: 0});
             }
 
             // Identify adjacent asteroids
@@ -170,15 +169,15 @@
             // Filter non-adjacent asteroids
             let nonAdjAsteroids = asteroidPositions.filter(pos => !adjAsteroids.some(a => a.x === pos.x && a.y === pos.y));
 
-            // Select 12 random non-adjacent for moving
+            // Select 6 random non-adjacent for moving (reduced by half)
             nonAdjAsteroids.sort(() => Math.random() - 0.5);
-            const selected = nonAdjAsteroids.slice(0, 12);
+            const selected = nonAdjAsteroids.slice(0, 6);
 
             const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
             movingAsteroids = selected.map((pos, index) => {
                 const dirIndex = Math.floor(Math.random() * 4);
                 const dir = directions[dirIndex];
-                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 6 ? 2 : 3};
+                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 3 ? 2 : 3};
             });
 
             // Add adjacent asteroids as moving, with direction away
@@ -375,6 +374,15 @@
             klingons.forEach((klingon) => {
                 if (klingon.x < 0) return;
 
+                let now = Date.now();
+                if (klingon.cloaked && now - klingon.cloakStart >= 10000) {
+                    klingon.cloaked = false;
+                    klingon.decloakStart = now;
+                } else if (!klingon.cloaked && now - klingon.decloakStart >= 4000) {
+                    klingon.cloaked = true;
+                    klingon.cloakStart = now;
+                }
+
                 let dx = playerX - klingon.x;
                 let dy = playerY - klingon.y;
                 let preferredFacing;
@@ -417,9 +425,9 @@
                 let dist = Math.abs(playerX - klingon.x) + Math.abs(playerY - klingon.y);
                 if (dist <= 6 && klingon.cloaked) {
                     klingon.cloaked = false;
-                    klingon.decloakTime = Date.now();
+                    klingon.decloakStart = now;
                 }
-                if (dist <= 4 && !klingon.cloaked && Date.now() - klingon.decloakTime > 2000) {
+                if (dist <= 4 && !klingon.cloaked && Date.now() - klingon.decloakStart > 2000) {
                     let hit = false;
                     for (let i = 0; i < 3; i++) {
                         if (Math.random() < 0.1) {
