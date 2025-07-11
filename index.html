@@ -70,8 +70,21 @@
         const cellHeight = CANVAS_HEIGHT / HEIGHT;
         const fireButton = document.getElementById('fireButton');
 
-        let enterpriseImg = new Image();
-        enterpriseImg.src = 'https://lintonrentfro.github.io/grok4/images/enterprise.png';
+        let enterpriseImg;
+        let tempImg = new Image();
+        tempImg.src = 'https://lintonrentfro.github.io/grok4/images/enterprise.png';
+        tempImg.onload = function() {
+          let offCanvas = document.createElement('canvas');
+          offCanvas.width = tempImg.height;
+          offCanvas.height = tempImg.width;
+          let offCtx = offCanvas.getContext('2d');
+          offCtx.translate(offCanvas.width / 2, offCanvas.height / 2);
+          offCtx.rotate(-Math.PI / 2);
+          offCtx.drawImage(tempImg, -tempImg.width / 2, -tempImg.height / 2);
+          enterpriseImg = new Image();
+          enterpriseImg.src = offCanvas.toDataURL();
+          enterpriseImg.onload = draw;
+        };
 
         let rockImg = new Image();
         rockImg.src = 'https://lintonrentfro.github.io/grok4/images/rock.png';
@@ -80,7 +93,6 @@
         tribbleImg.src = 'https://lintonrentfro.github.io/grok4/images/tribble.png';
 
         // Redraw when images load
-        enterpriseImg.onload = draw;
         rockImg.onload = draw;
         tribbleImg.onload = draw;
 
@@ -182,14 +194,14 @@
                 for (let x = 0; x < WIDTH; x++) {
                     let char = grid[y][x];
                     if (char === ENTERPRISE) {
-                        if (enterpriseImg.complete) {
+                        if (enterpriseImg && enterpriseImg.complete) {
                             let imgW = enterpriseImg.width;
                             let imgH = enterpriseImg.height;
                             let centerX = x * cellWidth + cellWidth / 2;
                             let centerY = y * cellHeight + cellHeight / 2;
                             ctx.save();
                             ctx.translate(centerX, centerY);
-                            ctx.rotate(facing * Math.PI / 2 - Math.PI / 2);
+                            ctx.rotate(facing * Math.PI / 2);
                             ctx.drawImage(enterpriseImg, -imgW / 2, -imgH / 2, imgW, imgH);
                             ctx.restore();
                         } else {
