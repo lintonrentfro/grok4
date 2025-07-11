@@ -189,7 +189,7 @@
                             let centerY = y * cellHeight + cellHeight / 2;
                             ctx.save();
                             ctx.translate(centerX, centerY);
-                            ctx.rotate(facing * Math.PI / 2);
+                            ctx.rotate(facing * Math.PI / 2 - Math.PI / 2);
                             ctx.drawImage(enterpriseImg, -imgW / 2, -imgH / 2, imgW, imgH);
                             ctx.restore();
                         } else {
