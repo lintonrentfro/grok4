@@ -87,36 +87,13 @@
         function initGame() {
             grid = Array.from({length: HEIGHT}, () => Array(WIDTH).fill(EMPTY));
 
-            // Choose random edge for goal (0: top, 1: bottom, 2: left, 3: right)
-            const edge = Math.floor(Math.random() * 4);
-            if (edge === 0) { // top
-                goalY = 0;
-                goalX = Math.floor(Math.random() * WIDTH);
-            } else if (edge === 1) { // bottom
-                goalY = HEIGHT - 1;
-                goalX = Math.floor(Math.random() * WIDTH);
-            } else if (edge === 2) { // left
-                goalX = 0;
-                goalY = Math.floor(Math.random() * HEIGHT);
-            } else { // right
-                goalX = WIDTH - 1;
-                goalY = Math.floor(Math.random() * HEIGHT);
-            }
+            // Player on left edge, random Y
+            playerX = 0;
+            playerY = Math.floor(Math.random() * HEIGHT);
 
-            // Place player on opposite side, as far as possible
-            if (edge === 0) { // goal top, player bottom
-                playerY = HEIGHT - 1;
-                playerX = goalX <= Math.floor(WIDTH / 2) ? WIDTH - 1 : 0;
-            } else if (edge === 1) { // goal bottom, player top
-                playerY = 0;
-                playerX = goalX <= Math.floor(WIDTH / 2) ? WIDTH - 1 : 0;
-            } else if (edge === 2) { // goal left, player right
-                playerX = WIDTH - 1;
-                playerY = goalY <= Math.floor(HEIGHT / 2) ? HEIGHT - 1 : 0;
-            } else { // goal right, player left
-                playerX = 0;
-                playerY = goalY <= Math.floor(HEIGHT / 2) ? HEIGHT - 1 : 0;
-            }
+            // Goal on right edge, random Y
+            goalX = WIDTH - 1;
+            goalY = Math.floor(Math.random() * HEIGHT);
 
             // Place random asteroids
             for (let i = 0; i < 20; i++) {
@@ -151,7 +128,7 @@
             playerMoves = 0;
             torpedoes = 3;
             firing = false;
-            facing = [0, 2, 3, 1][edge]; // Face away from the edge
+            facing = 1; // Face right, towards the goal
             movesSinceLastFire = 0;
             torpedoTargets = [];
             loseReason = 'asteroid';
@@ -197,7 +174,7 @@
                         } else {
                             ctx.fillText('*', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
-                    } else if (char === 'GOAL') {
+                    } else if (char === GOAL) {
                         if (tribbleImg.complete) {
                             let imgW = tribbleImg.width;
                             let imgH = tribbleImg.height;
@@ -218,14 +195,14 @@
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             if (gameState === 'ready') {
-                drawGrid();
+                drawGrid(false);
                 ctx.fillStyle = 'black';
                 ctx.font = '50px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('Press arrow key to start!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
             } else if (gameState === 'playing') {
-                drawGrid();
+                drawGrid(false);
             } else {
                 drawGrid(true);
                 ctx.fillStyle = 'black';
