@@ -34,7 +34,8 @@
     </script>
 
     <script>
-        const WIDTH = 20;
+        const DISPLAY_WIDTH = 20;
+        const WORLD_WIDTH = 100;
         const HEIGHT = 15;
         const CANVAS_WIDTH = 950;
         const CANVAS_HEIGHT = 600;
@@ -49,6 +50,7 @@
         let goalX;
         let goalY;
         let facing = 0; // 0: up, 1: right, 2: down, 3: left
+        let viewportLeft = 0;
         let gameState = 'ready';
         let hasStarted = false;
         let movingAsteroids = [];
@@ -66,7 +68,7 @@
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
-        const cellWidth = CANVAS_WIDTH / WIDTH;
+        const cellWidth = CANVAS_WIDTH / DISPLAY_WIDTH;
         const cellHeight = CANVAS_HEIGHT / HEIGHT;
         const fireButton = document.getElementById('fireButton');
 
@@ -97,19 +99,19 @@
         tribbleImg.onload = draw;
 
         function initGame() {
-            grid = Array.from({length: HEIGHT}, () => Array(WIDTH).fill(EMPTY));
+            grid = Array.from({length: HEIGHT}, () => Array(WORLD_WIDTH).fill(EMPTY));
 
             // Player on left edge, random Y
             playerX = 0;
             playerY = Math.floor(Math.random() * HEIGHT);
 
             // Goal on right edge, random Y
-            goalX = WIDTH - 1;
+            goalX = WORLD_WIDTH - 1;
             goalY = Math.floor(Math.random() * HEIGHT);
 
             // Place random asteroids
-            for (let i = 0; i < 20; i++) {
-                let ax = Math.floor(Math.random() * WIDTH);
+            for (let i = 0; i < 100; i++) {
+                let ax = Math.floor(Math.random() * WORLD_WIDTH);
                 let ay = Math.floor(Math.random() * HEIGHT);
                 if ((ax !== playerX || ay !== playerY) && (ax !== goalX || ay !== goalY)) {
                     grid[ay][ax] = ASTEROID;
@@ -123,14 +125,14 @@
             const adjPositions = [];
             if (playerY > 0) adjPositions.push({x: playerX, y: playerY - 1}); // up
             if (playerY < HEIGHT - 1) adjPositions.push({x: playerX, y: playerY + 1}); // down
-            if (playerX < WIDTH - 1) adjPositions.push({x: playerX + 1, y: playerY}); // right
+            if (playerX < WORLD_WIDTH - 1) adjPositions.push({x: playerX + 1, y: playerY}); // right
 
             const adjAsteroids = adjPositions.filter(p => grid[p.y][p.x] === ASTEROID);
 
             // Collect all asteroid positions
             let asteroidPositions = [];
             for (let y = 0; y < HEIGHT; y++) {
-                for (let x = 0; x < WIDTH; x++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
                     if (grid[y][x] === ASTEROID) {
                         asteroidPositions.push({x, y});
                     }
@@ -140,15 +142,15 @@
             // Filter non-adjacent asteroids
             let nonAdjAsteroids = asteroidPositions.filter(pos => !adjAsteroids.some(a => a.x === pos.x && a.y === pos.y));
 
-            // Select 6 random non-adjacent for moving
+            // Select 30 random non-adjacent for moving
             nonAdjAsteroids.sort(() => Math.random() - 0.5);
-            const selected = nonAdjAsteroids.slice(0, 6);
+            const selected = nonAdjAsteroids.slice(0, 30);
 
             const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
             movingAsteroids = selected.map((pos, index) => {
                 const dirIndex = Math.floor(Math.random() * 4);
                 const dir = directions[dirIndex];
-                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 3 ? 2 : 3};
+                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 15 ? 2 : 3};
             });
 
             // Add adjacent asteroids as moving, with direction away
@@ -170,13 +172,13 @@
             torpedoes = 3;
             firing = false;
             facing = 1; // Face right, towards the goal
+            viewportLeft = 0;
             movesSinceLastFire = 0;
             torpedoTargets = [];
             loseReason = 'asteroid';
             fireButton.disabled = true;
             if (animationId) cancelAnimationFrame(animationId);
             gameState = hasStarted ? 'playing' : 'ready';
-            document.addEventListener('keydown', handleKey);
             updateFireButton();
             draw();
         }
@@ -191,13 +193,15 @@
             ctx.textBaseline = 'middle';
 
             for (let y = 0; y < HEIGHT; y++) {
-                for (let x = 0; x < WIDTH; x++) {
-                    let char = grid[y][x];
+                for (let wx = viewportLeft; wx < viewportLeft + DISPLAY_WIDTH; wx++) {
+                    if (wx >= WORLD_WIDTH) break;
+                    let char = grid[y][wx];
+                    let localX = wx - viewportLeft;
                     if (char === ENTERPRISE) {
                         if (enterpriseImg && enterpriseImg.complete) {
                             let imgW = enterpriseImg.width;
                             let imgH = enterpriseImg.height;
-                            let centerX = x * cellWidth + cellWidth / 2;
+                            let centerX = localX * cellWidth + cellWidth / 2;
                             let centerY = y * cellHeight + cellHeight / 2;
                             ctx.save();
                             ctx.translate(centerX, centerY);
@@ -205,23 +209,23 @@
                             ctx.drawImage(enterpriseImg, -imgW / 2, -imgH / 2, imgW, imgH);
                             ctx.restore();
                         } else {
-                            ctx.fillText('@', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('@', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     } else if (char === ASTEROID) {
                         if (rockImg.complete) {
                             let imgW = rockImg.width;
                             let imgH = rockImg.height;
-                            ctx.drawImage(rockImg, x * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
+                            ctx.drawImage(rockImg, localX * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
                         } else {
-                            ctx.fillText('*', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('*', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     } else if (char === GOAL) {
                         if (tribbleImg.complete) {
                             let imgW = tribbleImg.width;
                             let imgH = tribbleImg.height;
-                            ctx.drawImage(tribbleImg, x * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
+                            ctx.drawImage(tribbleImg, localX * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
                         } else {
-                            ctx.fillText('G', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('G', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     }
                 }
@@ -270,7 +274,7 @@
                 }
                 let newX = ast.x + ast.dx;
                 let newY = ast.y + ast.dy;
-                if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT) {
+                if (newX < 0 || newX >= WORLD_WIDTH || newY < 0 || newY >= HEIGHT) {
                     grid[ast.y][ast.x] = EMPTY;
                     return;
                 }
@@ -335,7 +339,7 @@
         function move(dx, dy) {
             let newX = playerX + dx;
             let newY = playerY + dy;
-            if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT) return;
+            if (newX < 0 || newX >= WORLD_WIDTH || newY < 0 || newY >= HEIGHT) return;
             if (grid[newY][newX] === ASTEROID) {
                 loseReason = 'asteroid';
                 gameState = 'gameover';
@@ -361,7 +365,7 @@
                 for (let d of dirs) {
                     let nx = goalX + d[0];
                     let ny = goalY + d[1];
-                    if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && grid[ny][nx] === EMPTY) {
+                    if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < HEIGHT && grid[ny][nx] === EMPTY) {
                         let new_dist = Math.abs(nx - playerX) + Math.abs(ny - playerY);
                         if (new_dist > current_dist) {
                             possible_moves.push({x: nx, y: ny});
@@ -377,6 +381,8 @@
                 }
             }
             moveAsteroids();
+            viewportLeft = Math.max(0, playerX - 10);
+            viewportLeft = Math.min(viewportLeft, WORLD_WIDTH - DISPLAY_WIDTH);
             movesSinceLastFire++;
             draw();
             updateFireButton();
@@ -387,12 +393,12 @@
             let ax, ay, dx, dy;
             if (edge === 0) { // top
                 ay = 0;
-                ax = Math.floor(Math.random() * WIDTH);
+                ax = Math.floor(Math.random() * WORLD_WIDTH);
                 dy = 1;
                 dx = 0;
             } else if (edge === 1) { // bottom
                 ay = HEIGHT - 1;
-                ax = Math.floor(Math.random() * WIDTH);
+                ax = Math.floor(Math.random() * WORLD_WIDTH);
                 dy = -1;
                 dx = 0;
             } else if (edge === 2) { // left
@@ -401,7 +407,7 @@
                 dx = 1;
                 dy = 0;
             } else { // right
-                ax = WIDTH - 1;
+                ax = WORLD_WIDTH - 1;
                 ay = Math.floor(Math.random() * HEIGHT);
                 dx = -1;
                 dy = 0;
@@ -426,8 +432,8 @@
             if (torpedoTargets.length === 0 || firing) return;
             let target = torpedoTargets.shift();
             firing = true;
-            torpedoPos = {x: playerX * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
-            targetPos = {x: target.x * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
+            torpedoPos = {x: (playerX - viewportLeft) * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
+            targetPos = {x: (target.x - viewportLeft) * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
             let dx = targetPos.x - torpedoPos.x;
             let dy = targetPos.y - torpedoPos.y;
             let dist = Math.sqrt(dx * dx + dy * dy);
@@ -474,7 +480,7 @@
             if (fireButton.disabled || gameState !== 'playing') return;
             let targets = [];
             for (let y = 0; y < HEIGHT; y++) {
-                for (let x = 0; x < WIDTH; x++) {
+                for (let x = 0; x < WORLD_WIDTH; x++) {
                     if (grid[y][x] === ASTEROID || (x === goalX && y === goalY)) {
                         let dist = Math.abs(x - playerX) + Math.abs(y - playerY);
                         if (dist > 0) {
@@ -508,7 +514,7 @@
                 if (torpedoes <= 0) return;
                 let targets = [];
                 for (let y = 0; y < HEIGHT; y++) {
-                    for (let x = 0; x < WIDTH; x++) {
+                    for (let x = 0; x < WORLD_WIDTH; x++) {
                         if (grid[y][x] === ASTEROID || (x === goalX && y === goalY)) {
                             let dist = Math.abs(x - playerX) + Math.abs(y - playerY);
                             if (dist <= 5 && dist > 0) {
@@ -522,8 +528,8 @@
                 let target = targets[0];
                 torpedoes--;
                 firing = true;
-                torpedoPos = {x: playerX * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
-                targetPos = {x: target.x * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
+                torpedoPos = {x: (playerX - viewportLeft) * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
+                targetPos = {x: (target.x - viewportLeft) * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
                 let dx = targetPos.x - torpedoPos.x;
                 let dy = targetPos.y - torpedoPos.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
@@ -573,6 +579,7 @@
             }
         }
 
+        document.addEventListener('keydown', handleKey);
         initGame();
     </script>
 </body>
