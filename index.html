@@ -34,14 +34,14 @@
     </script>
 
     <script>
-        const DISPLAY_WIDTH = 20;
-        const WORLD_WIDTH = 100;
+        const WIDTH = 20;
         const HEIGHT = 15;
         const CANVAS_WIDTH = 950;
         const CANVAS_HEIGHT = 600;
         const ENTERPRISE = 'E';
         const ASTEROID = '*';
         const GOAL = 'G';
+        const KLINGON = 'K';
         const EMPTY = ' ';
 
         let grid;
@@ -49,8 +49,11 @@
         let playerY;
         let goalX;
         let goalY;
+        let klingonX;
+        let klingonY;
+        let klingonFacing;
+        let cloaked;
         let facing = 0; // 0: up, 1: right, 2: down, 3: left
-        let viewportLeft = 0;
         let gameState = 'ready';
         let hasStarted = false;
         let movingAsteroids = [];
@@ -68,7 +71,7 @@
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
-        const cellWidth = CANVAS_WIDTH / DISPLAY_WIDTH;
+        const cellWidth = CANVAS_WIDTH / WIDTH;
         const cellHeight = CANVAS_HEIGHT / HEIGHT;
         const fireButton = document.getElementById('fireButton');
 
@@ -94,91 +97,77 @@
         let tribbleImg = new Image();
         tribbleImg.src = 'https://lintonrentfro.github.io/grok4/images/tribble.png';
 
+        let klingonImg = new Image();
+        klingonImg.src = 'https://lintonrentfro.github.io/grok4/images/klingon.png';
+
         // Redraw when images load
         rockImg.onload = draw;
         tribbleImg.onload = draw;
+        klingonImg.onload = draw;
 
         function initGame() {
-            grid = Array.from({length: HEIGHT}, () => Array(WORLD_WIDTH).fill(EMPTY));
+            grid = Array.from({length: HEIGHT}, () => Array(WIDTH).fill(EMPTY));
 
             // Player on left edge, random Y
             playerX = 0;
             playerY = Math.floor(Math.random() * HEIGHT);
 
             // Goal on right edge, random Y
-            goalX = WORLD_WIDTH - 1;
+            goalX = WIDTH - 1;
             goalY = Math.floor(Math.random() * HEIGHT);
 
             // Place random asteroids
-            for (let i = 0; i < 100; i++) {
-                let ax = Math.floor(Math.random() * WORLD_WIDTH);
+            for (let i = 0; i < 20; i++) {
+                let ax = Math.floor(Math.random() * WIDTH);
                 let ay = Math.floor(Math.random() * HEIGHT);
                 if ((ax !== playerX || ay !== playerY) && (ax !== goalX || ay !== goalY)) {
                     grid[ay][ax] = ASTEROID;
                 }
             }
 
+            // Place Klingon
+            let dist;
+            do {
+                klingonX = Math.floor(Math.random() * WIDTH);
+                klingonY = Math.floor(Math.random() * HEIGHT);
+                dist = Math.abs(klingonX - playerX) + Math.abs(klingonY - playerY);
+            } while (grid[klingonY][klingonX] !== EMPTY || dist <= 6 || (klingonX === goalX && klingonY === goalY));
+            grid[klingonY][klingonX] = KLINGON;
+            klingonFacing = Math.floor(Math.random() * 4);
+            cloaked = true;
+
             grid[playerY][playerX] = ENTERPRISE;
             grid[goalY][goalX] = GOAL;
 
-            // Identify adjacent asteroids
-            const adjPositions = [];
-            if (playerY > 0) adjPositions.push({x: playerX, y: playerY - 1}); // up
-            if (playerY < HEIGHT - 1) adjPositions.push({x: playerX, y: playerY + 1}); // down
-            if (playerX < WORLD_WIDTH - 1) adjPositions.push({x: playerX + 1, y: playerY}); // right
-
-            const adjAsteroids = adjPositions.filter(p => grid[p.y][p.x] === ASTEROID);
-
-            // Collect all asteroid positions
+            // Select more moving asteroids (6)
             let asteroidPositions = [];
             for (let y = 0; y < HEIGHT; y++) {
-                for (let x = 0; x < WORLD_WIDTH; x++) {
+                for (let x = 0; x < WIDTH; x++) {
                     if (grid[y][x] === ASTEROID) {
                         asteroidPositions.push({x, y});
                     }
                 }
             }
-
-            // Filter non-adjacent asteroids
-            let nonAdjAsteroids = asteroidPositions.filter(pos => !adjAsteroids.some(a => a.x === pos.x && a.y === pos.y));
-
-            // Select 30 random non-adjacent for moving
-            nonAdjAsteroids.sort(() => Math.random() - 0.5);
-            const selected = nonAdjAsteroids.slice(0, 30);
-
+            asteroidPositions.sort(() => Math.random() - 0.5);
+            const selected = asteroidPositions.slice(0, 6);
             const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
             movingAsteroids = selected.map((pos, index) => {
                 const dirIndex = Math.floor(Math.random() * 4);
                 const dir = directions[dirIndex];
-                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 15 ? 2 : 3};
+                return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 3 ? 2 : 3};
             });
-
-            // Add adjacent asteroids as moving, with direction away
-            for (let adj of adjAsteroids) {
-                const vecX = adj.x - playerX;
-                const vecY = adj.y - playerY;
-                const awayDirs = directions.filter(d => vecX * d[0] + vecY * d[1] > 0);
-                let chosenDir;
-                if (awayDirs.length > 0) {
-                    chosenDir = awayDirs[Math.floor(Math.random() * awayDirs.length)];
-                } else {
-                    chosenDir = directions[Math.floor(Math.random() * 4)];
-                }
-                const interval = Math.random() < 0.5 ? 2 : 3;
-                movingAsteroids.push({x: adj.x, y: adj.y, dx: chosenDir[0], dy: chosenDir[1], interval});
-            }
 
             playerMoves = 0;
             torpedoes = 3;
             firing = false;
             facing = 1; // Face right, towards the goal
-            viewportLeft = 0;
             movesSinceLastFire = 0;
             torpedoTargets = [];
             loseReason = 'asteroid';
             fireButton.disabled = true;
             if (animationId) cancelAnimationFrame(animationId);
             gameState = hasStarted ? 'playing' : 'ready';
+            document.addEventListener('keydown', handleKey);
             updateFireButton();
             draw();
         }
@@ -193,15 +182,13 @@
             ctx.textBaseline = 'middle';
 
             for (let y = 0; y < HEIGHT; y++) {
-                for (let wx = viewportLeft; wx < viewportLeft + DISPLAY_WIDTH; wx++) {
-                    if (wx >= WORLD_WIDTH) break;
-                    let char = grid[y][wx];
-                    let localX = wx - viewportLeft;
+                for (let x = 0; x < WIDTH; x++) {
+                    let char = grid[y][x];
                     if (char === ENTERPRISE) {
                         if (enterpriseImg && enterpriseImg.complete) {
                             let imgW = enterpriseImg.width;
                             let imgH = enterpriseImg.height;
-                            let centerX = localX * cellWidth + cellWidth / 2;
+                            let centerX = x * cellWidth + cellWidth / 2;
                             let centerY = y * cellHeight + cellHeight / 2;
                             ctx.save();
                             ctx.translate(centerX, centerY);
@@ -209,23 +196,38 @@
                             ctx.drawImage(enterpriseImg, -imgW / 2, -imgH / 2, imgW, imgH);
                             ctx.restore();
                         } else {
-                            ctx.fillText('@', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('@', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     } else if (char === ASTEROID) {
                         if (rockImg.complete) {
                             let imgW = rockImg.width;
                             let imgH = rockImg.height;
-                            ctx.drawImage(rockImg, localX * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
+                            ctx.drawImage(rockImg, x * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
                         } else {
-                            ctx.fillText('*', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('*', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     } else if (char === GOAL) {
                         if (tribbleImg.complete) {
                             let imgW = tribbleImg.width;
                             let imgH = tribbleImg.height;
-                            ctx.drawImage(tribbleImg, localX * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
+                            ctx.drawImage(tribbleImg, x * cellWidth + (cellWidth - imgW) / 2, y * cellHeight + (cellHeight - imgH) / 2, imgW, imgH);
                         } else {
-                            ctx.fillText('G', localX * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                            ctx.fillText('G', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
+                        }
+                    } else if (char === KLINGON) {
+                        if (cloaked) continue;
+                        if (klingonImg.complete) {
+                            let imgW = klingonImg.width;
+                            let imgH = klingonImg.height;
+                            let centerX = x * cellWidth + cellWidth / 2;
+                            let centerY = y * cellHeight + cellHeight / 2;
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(klingonFacing * Math.PI / 2);
+                            ctx.drawImage(klingonImg, -imgW / 2, -imgH / 2, imgW, imgH);
+                            ctx.restore();
+                        } else {
+                            ctx.fillText('K', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
                     }
                 }
@@ -257,8 +259,14 @@
                 let message;
                 if (gameState === 'won') {
                     message = 'You found the tribble! Press arrow key to restart!';
-                } else {
-                    message = loseReason === 'asteroid' ? 'You hit an asteroid and exploded! Press arrow key to restart!' : 'You destroyed the Tribble! Press arrow key to restart!';
+                } else if (loseReason === 'asteroid') {
+                    message = 'You hit an asteroid and exploded! Press arrow key to restart!';
+                } else if (loseReason === 'tribble') {
+                    message = 'You destroyed the Tribble! Press arrow key to restart!';
+                } else if (loseReason === 'klingon_torpedo') {
+                    message = 'You were hit by a Klingon torpedo! Press arrow key to restart!';
+                } else if (loseReason === 'klingon_collision') {
+                    message = 'You collided with a Klingon ship! Press arrow key to restart!';
                 }
                 ctx.fillText(message, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
             }
@@ -274,7 +282,7 @@
                 }
                 let newX = ast.x + ast.dx;
                 let newY = ast.y + ast.dy;
-                if (newX < 0 || newX >= WORLD_WIDTH || newY < 0 || newY >= HEIGHT) {
+                if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT) {
                     grid[ast.y][ast.x] = EMPTY;
                     return;
                 }
@@ -303,6 +311,9 @@
                         ast.y = newY;
                         newMovingAsteroids.push(ast);
                     }
+                } else if (target === KLINGON) {
+                    grid[ast.y][ast.x] = EMPTY;
+                    return;
                 }
             });
             movingAsteroids = newMovingAsteroids;
@@ -339,14 +350,21 @@
         function move(dx, dy) {
             let newX = playerX + dx;
             let newY = playerY + dy;
-            if (newX < 0 || newX >= WORLD_WIDTH || newY < 0 || newY >= HEIGHT) return;
-            if (grid[newY][newX] === ASTEROID) {
+            if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT) return;
+            let target = grid[newY][newX];
+            if (target === ASTEROID) {
                 loseReason = 'asteroid';
                 gameState = 'gameover';
                 draw();
                 return;
             }
-            if (grid[newY][newX] === GOAL) {
+            if (target === KLINGON) {
+                loseReason = 'klingon_collision';
+                gameState = 'gameover';
+                draw();
+                return;
+            }
+            if (target === GOAL) {
                 gameState = 'won';
                 draw();
                 return;
@@ -365,7 +383,7 @@
                 for (let d of dirs) {
                     let nx = goalX + d[0];
                     let ny = goalY + d[1];
-                    if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < HEIGHT && grid[ny][nx] === EMPTY) {
+                    if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && grid[ny][nx] === EMPTY) {
                         let new_dist = Math.abs(nx - playerX) + Math.abs(ny - playerY);
                         if (new_dist > current_dist) {
                             possible_moves.push({x: nx, y: ny});
@@ -381,11 +399,58 @@
                 }
             }
             moveAsteroids();
-            viewportLeft = Math.max(0, playerX - 10);
-            viewportLeft = Math.min(viewportLeft, WORLD_WIDTH - DISPLAY_WIDTH);
             movesSinceLastFire++;
             draw();
             updateFireButton();
+        }
+
+        function updateKlingon() {
+            if (klingonX < 0) return;
+
+            let dx = playerX - klingonX;
+            let dy = playerY - klingonY;
+            let preferredFacing;
+            if (Math.abs(dx) >= Math.abs(dy)) {
+                preferredFacing = dx > 0 ? 1 : 3;
+            } else {
+                preferredFacing = dy > 0 ? 2 : 0;
+            }
+
+            let diff = (preferredFacing - klingonFacing + 4) % 4;
+            if (diff !== 0) {
+                if (diff === 1 || diff === 2) {
+                    klingonFacing = (klingonFacing + 1) % 4; // turn right
+                } else {
+                    klingonFacing = (klingonFacing - 1 + 4) % 4; // turn left
+                }
+            } else {
+                // try to move forward
+                let kdx = 0, kdy = 0;
+                if (klingonFacing === 0) kdy = -1;
+                else if (klingonFacing === 1) kdx = 1;
+                else if (klingonFacing === 2) kdy = 1;
+                else if (klingonFacing === 3) kdx = -1;
+                let newKX = klingonX + kdx;
+                let newKY = klingonY + kdy;
+                if (newKX >= 0 && newKX < WIDTH && newKY >= 0 && newKY < HEIGHT && grid[newKY][newKX] === EMPTY) {
+                    grid[klingonY][klingonX] = EMPTY;
+                    klingonX = newKX;
+                    klingonY = newKY;
+                    grid[klingonY][klingonX] = KLINGON;
+                }
+            }
+
+            let dist = Math.abs(playerX - klingonX) + Math.abs(playerY - klingonY);
+            if (dist <= 6) cloaked = false;
+            if (dist <= 4) {
+                for (let i = 0; i < 3; i++) {
+                    if (Math.random() < 0.1) {
+                        gameState = 'gameover';
+                        loseReason = 'klingon_torpedo';
+                        break;
+                    }
+                }
+            }
         }
 
         function spawnAsteroid() {
@@ -393,12 +458,12 @@
             let ax, ay, dx, dy;
             if (edge === 0) { // top
                 ay = 0;
-                ax = Math.floor(Math.random() * WORLD_WIDTH);
+                ax = Math.floor(Math.random() * WIDTH);
                 dy = 1;
                 dx = 0;
             } else if (edge === 1) { // bottom
                 ay = HEIGHT - 1;
-                ax = Math.floor(Math.random() * WORLD_WIDTH);
+                ax = Math.floor(Math.random() * WIDTH);
                 dy = -1;
                 dx = 0;
             } else if (edge === 2) { // left
@@ -407,7 +472,7 @@
                 dx = 1;
                 dy = 0;
             } else { // right
-                ax = WORLD_WIDTH - 1;
+                ax = WIDTH - 1;
                 ay = Math.floor(Math.random() * HEIGHT);
                 dx = -1;
                 dy = 0;
@@ -432,8 +497,8 @@
             if (torpedoTargets.length === 0 || firing) return;
             let target = torpedoTargets.shift();
             firing = true;
-            torpedoPos = {x: (playerX - viewportLeft) * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
-            targetPos = {x: (target.x - viewportLeft) * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
+            torpedoPos = {x: playerX * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
+            targetPos = {x: target.x * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
             let dx = targetPos.x - torpedoPos.x;
             let dy = targetPos.y - torpedoPos.y;
             let dist = Math.sqrt(dx * dx + dy * dy);
@@ -460,6 +525,11 @@
                         gameState = 'gameover';
                         torpedoTargets = [];
                         draw();
+                    } else if (target.x === klingonX && target.y === klingonY) {
+                        if (Math.random() < 0.4) {
+                            grid[target.y][target.x] = EMPTY;
+                            klingonX = -1;
+                        }
                     } else {
                         if (Math.random() < 0.4) {
                             grid[target.y][target.x] = EMPTY;
@@ -480,8 +550,8 @@
             if (fireButton.disabled || gameState !== 'playing') return;
             let targets = [];
             for (let y = 0; y < HEIGHT; y++) {
-                for (let x = 0; x < WORLD_WIDTH; x++) {
-                    if (grid[y][x] === ASTEROID || (x === goalX && y === goalY)) {
+                for (let x = 0; x < WIDTH; x++) {
+                    if (grid[y][x] === ASTEROID || (x === goalX && y === goalY) || (!cloaked && x === klingonX && y === klingonY)) {
                         let dist = Math.abs(x - playerX) + Math.abs(y - playerY);
                         if (dist > 0) {
                             targets.push({x, y, dist, isGoal: (x === goalX && y === goalY)});
@@ -514,8 +584,8 @@
                 if (torpedoes <= 0) return;
                 let targets = [];
                 for (let y = 0; y < HEIGHT; y++) {
-                    for (let x = 0; x < WORLD_WIDTH; x++) {
-                        if (grid[y][x] === ASTEROID || (x === goalX && y === goalY)) {
+                    for (let x = 0; x < WIDTH; x++) {
+                        if (grid[y][x] === ASTEROID || (x === goalX && y === goalY) || (!cloaked && x === klingonX && y === klingonY)) {
                             let dist = Math.abs(x - playerX) + Math.abs(y - playerY);
                             if (dist <= 5 && dist > 0) {
                                 targets.push({x, y, dist, isGoal: (x === goalX && y === goalY)});
@@ -528,8 +598,8 @@
                 let target = targets[0];
                 torpedoes--;
                 firing = true;
-                torpedoPos = {x: (playerX - viewportLeft) * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
-                targetPos = {x: (target.x - viewportLeft) * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
+                torpedoPos = {x: playerX * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
+                targetPos = {x: target.x * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
                 let dx = targetPos.x - torpedoPos.x;
                 let dy = targetPos.y - torpedoPos.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
@@ -555,6 +625,11 @@
                             loseReason = 'tribble';
                             gameState = 'gameover';
                             draw();
+                        } else if (target.x === klingonX && target.y === klingonY) {
+                            if (Math.random() < 0.4) {
+                                grid[target.y][target.x] = EMPTY;
+                                klingonX = -1;
+                            }
                         } else {
                             if (Math.random() < 0.4) {
                                 grid[target.y][target.x] = EMPTY;
@@ -570,16 +645,20 @@
                 animationId = requestAnimationFrame(animateTorpedo);
                 return;
             }
+            let actionTaken = false;
             switch (e.key) {
-                case 'ArrowUp': moveForward(); break;
-                case 'ArrowDown': moveBackward(); break;
-                case 'ArrowLeft': turnLeft(); break;
-                case 'ArrowRight': turnRight(); break;
+                case 'ArrowUp': moveForward(); actionTaken = true; break;
+                case 'ArrowDown': moveBackward(); actionTaken = true; break;
+                case 'ArrowLeft': turnLeft(); actionTaken = true; break;
+                case 'ArrowRight': turnRight(); actionTaken = true; break;
                 case ' ': fireTorpedo(); break;
+            }
+            if (actionTaken) {
+                updateKlingon();
+                draw();
             }
         }
 
-        document.addEventListener('keydown', handleKey);
         initGame();
     </script>
 </body>
