@@ -64,6 +64,7 @@
         let movesSinceLastFire = 0;
         let torpedoTargets = [];
         let loseReason = 'asteroid';
+        let explosionFrame = 0;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
@@ -563,7 +564,7 @@
                     } else {
                         let hitKlingon = klingons.find(k => k.x === target.x && k.y === target.y);
                         if (hitKlingon) {
-                            if (Math.random() < 0.4) {
+                            if (Math.random() < 0.75) {
                                 grid[target.y][target.x] = EMPTY;
                                 klingons = klingons.filter(k => !(k.x === target.x && k.y === target.y));
                             }
@@ -581,6 +582,25 @@
                 }
             }
             animationId = requestAnimationFrame(animateTorpedo);
+        }
+
+        function animateExplosion() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            drawGrid(true);
+            let centerX = (playerX - viewportLeft) * cellWidth + cellWidth / 2;
+            let centerY = playerY * cellHeight + cellHeight / 2;
+            ctx.fillStyle = `rgba(255, 165, 0, ${1 - explosionFrame / 10})`;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, explosionFrame * 10, 0, 2 * Math.PI);
+            ctx.fill();
+            explosionFrame++;
+            if (explosionFrame < 10) {
+                animationId = requestAnimationFrame(animateExplosion);
+            } else {
+                explosionFrame = 0;
+                draw();
+            }
         }
 
         function handleKey(e) {
@@ -615,5 +635,4 @@
         initGame();
     </script>
 </body>
-// howdy
 </html>
