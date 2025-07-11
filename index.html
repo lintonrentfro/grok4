@@ -71,13 +71,13 @@
         const fireButton = document.getElementById('fireButton');
 
         let enterpriseImg = new Image();
-        enterpriseImg.src = 'https://stuff2-2f8.pages.dev/enterprise.png';
+        enterpriseImg.src = 'https://lintonrentfro.github.io/grok4/images/enterprise.png';
 
         let rockImg = new Image();
-        rockImg.src = 'https://stuff2-2f8.pages.dev/rock.png';
+        rockImg.src = 'https://lintonrentfro.github.io/grok4/images/rock.png';
 
         let tribbleImg = new Image();
-        tribbleImg.src = 'https://stuff2-2f8.pages.dev/tribble.png';
+        tribbleImg.src = 'https://lintonrentfro.github.io/grok4/images/tribble.png';
 
         // Redraw when images load
         enterpriseImg.onload = draw;
@@ -197,7 +197,7 @@
                         } else {
                             ctx.fillText('*', x * cellWidth + cellWidth / 2, y * cellHeight + cellHeight / 2);
                         }
-                    } else if (char === GOAL) {
+                    } else if (char === 'GOAL') {
                         if (tribbleImg.complete) {
                             let imgW = tribbleImg.width;
                             let imgH = tribbleImg.height;
@@ -218,14 +218,14 @@
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             if (gameState === 'ready') {
-                drawGrid(false);
+                drawGrid();
                 ctx.fillStyle = 'black';
                 ctx.font = '50px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('Press arrow key to start!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
             } else if (gameState === 'playing') {
-                drawGrid(false);
+                drawGrid();
             } else {
                 drawGrid(true);
                 ctx.fillStyle = 'black';
