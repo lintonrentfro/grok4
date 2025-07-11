@@ -9,19 +9,26 @@
         canvas { background: white; display: block; border: 3px solid black; }
         .callout { border: 3px solid gray; width: 200px; height: 600px; box-sizing: border-box; margin-right: 20px; }
         body { background: #fefefe; margin-top: 20px; } /* Foundation default light bg */
-        .game-container { display: flex; justify-content: center; align-items: flex-start; }
+        .game-container { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .top-row { display: flex; justify-content: center; align-items: flex-start; }
+        .controls { border: 3px solid gray; height: 50px; box-sizing: border-box; width: 1173px; margin-top: 20px; } /* Align width with top (200 + 20 + 950 + borders) */
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="callout">
-            <div class="grid-y grid-padding-y" style="height: 100%;">
-                <div class="cell auto">
-                    <p>Rules: You are the Enterprise. Navigate through space to the Tribble. Avoid asteroids. Use arrow keys: Up - forward, Down - backward, Left - turn left, Right - turn right. Reach the Tribble to win!</p>
+        <div class="top-row">
+            <div class="callout">
+                <div class="grid-y grid-padding-y" style="height: 100%;">
+                    <div class="cell auto">
+                        <p>Rules: You are the Enterprise. Navigate through space to the Tribble. Avoid asteroids. Use arrow keys: Up - forward, Down - backward, Left - turn left, Right - turn right. Reach the Tribble to win!</p>
+                    </div>
                 </div>
             </div>
+            <canvas id="game" width="950" height="600"></canvas>
         </div>
-        <canvas id="game" width="950" height="600"></canvas>
+        <div class="controls">
+            <!-- Ship controls can be added here -->
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" crossorigin="anonymous"></script>
@@ -64,7 +71,6 @@
         let movesSinceLastFire = 0;
         let torpedoTargets = [];
         let loseReason = 'asteroid';
-        let explosionFrame = 0;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
@@ -281,7 +287,7 @@
             } else {
                 drawGrid(true);
                 ctx.fillStyle = 'black';
-                ctx.font = '50px sans-serif';
+                ctx.font = '25px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 let message;
@@ -564,7 +570,7 @@
                     } else {
                         let hitKlingon = klingons.find(k => k.x === target.x && k.y === target.y);
                         if (hitKlingon) {
-                            if (Math.random() < 0.75) {
+                            if (Math.random() < 0.4) {
                                 grid[target.y][target.x] = EMPTY;
                                 klingons = klingons.filter(k => !(k.x === target.x && k.y === target.y));
                             }
@@ -582,25 +588,6 @@
                 }
             }
             animationId = requestAnimationFrame(animateTorpedo);
-        }
-
-        function animateExplosion() {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            drawGrid(true);
-            let centerX = (playerX - viewportLeft) * cellWidth + cellWidth / 2;
-            let centerY = playerY * cellHeight + cellHeight / 2;
-            ctx.fillStyle = `rgba(255, 165, 0, ${1 - explosionFrame / 10})`;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, explosionFrame * 10, 0, 2 * Math.PI);
-            ctx.fill();
-            explosionFrame++;
-            if (explosionFrame < 10) {
-                animationId = requestAnimationFrame(animateExplosion);
-            } else {
-                explosionFrame = 0;
-                draw();
-            }
         }
 
         function handleKey(e) {
