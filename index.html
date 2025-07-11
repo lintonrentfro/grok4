@@ -75,7 +75,8 @@
         let torpedoTargets = [];
         let loseReason = 'asteroid';
         let explosionFrame = 0;
-        let klingonInterval;
+        let shieldUp = true;
+        let shieldRegenTimeout;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
@@ -145,7 +146,7 @@
                     dist = Math.abs(kx - playerX) + Math.abs(ky - playerY);
                 } while (grid[ky][kx] !== EMPTY || dist <= 6 || (kx === goalX && ky === goalY));
                 grid[ky][kx] = KLINGON;
-                klingons.push({x: kx, y: ky, facing: Math.floor(Math.random() * 4), cloaked: true, decloakTime: 0, readyToFire: false});
+                klingons.push({x: kx, y: ky, facing: Math.floor(Math.random() * 4), cloaked: true});
             }
 
             // Identify adjacent asteroids
@@ -203,6 +204,8 @@
             movesSinceLastFire = 0;
             torpedoTargets = [];
             loseReason = 'asteroid';
+            shieldUp = true;
+            if (shieldRegenTimeout) clearTimeout(shieldRegenTimeout);
             if (animationId) cancelAnimationFrame(animationId);
             gameState = hasStarted ? 'playing' : 'ready';
             if (klingonInterval) clearInterval(klingonInterval);
@@ -225,11 +228,19 @@
                     let char = grid[y][wx];
                     let localX = wx - viewportLeft;
                     if (char === ENTERPRISE) {
+                        let centerX = localX * cellWidth + cellWidth / 2;
+                        let centerY = y * cellHeight + cellHeight / 2;
+                        if (shieldUp) {
+                            ctx.shadowColor = 'blue';
+                            ctx.shadowBlur = 10;
+                            ctx.strokeStyle = 'blue';
+                            ctx.lineWidth = 8;
+                            ctx.strokeRect(localX * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                            ctx.shadowBlur = 0;
+                        }
                         if (enterpriseImg && enterpriseImg.complete) {
                             let imgW = enterpriseImg.width;
                             let imgH = enterpriseImg.height;
-                            let centerX = localX * cellWidth + cellWidth / 2;
-                            let centerY = y * cellHeight + cellHeight / 2;
                             ctx.save();
                             ctx.translate(centerX, centerY);
                             ctx.rotate(facing * Math.PI / 2);
@@ -409,12 +420,21 @@
                     klingon.decloakTime = Date.now();
                 }
                 if (dist <= 4 && !klingon.cloaked && Date.now() - klingon.decloakTime > 2000) {
+                    let hit = false;
                     for (let i = 0; i < 3; i++) {
                         if (Math.random() < 0.1) {
+                            hit = true;
+                            break;
+                        }
+                    }
+                    if (hit) {
+                        if (shieldUp) {
+                            shieldUp = false;
+                            shieldRegenTimeout = setTimeout(() => { shieldUp = true; draw(); }, 5000);
+                        } else {
                             loseReason = 'klingon_torpedo';
                             gameState = 'gameover';
                             animationId = requestAnimationFrame(animateExplosion);
-                            break;
                         }
                     }
                 }
