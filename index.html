@@ -107,7 +107,15 @@
             grid[playerY][playerX] = ENTERPRISE;
             grid[goalY][goalX] = GOAL;
 
-            // Select more moving asteroids (6)
+            // Identify adjacent asteroids
+            const adjPositions = [];
+            if (playerY > 0) adjPositions.push({x: playerX, y: playerY - 1}); // up
+            if (playerY < HEIGHT - 1) adjPositions.push({x: playerX, y: playerY + 1}); // down
+            if (playerX < WIDTH - 1) adjPositions.push({x: playerX + 1, y: playerY}); // right
+
+            const adjAsteroids = adjPositions.filter(p => grid[p.y][p.x] === ASTEROID);
+
+            // Collect all asteroid positions
             let asteroidPositions = [];
             for (let y = 0; y < HEIGHT; y++) {
                 for (let x = 0; x < WIDTH; x++) {
@@ -116,14 +124,35 @@
                     }
                 }
             }
-            asteroidPositions.sort(() => Math.random() - 0.5);
-            const selected = asteroidPositions.slice(0, 6);
+
+            // Filter non-adjacent asteroids
+            let nonAdjAsteroids = asteroidPositions.filter(pos => !adjAsteroids.some(a => a.x === pos.x && a.y === pos.y));
+
+            // Select 6 random non-adjacent for moving
+            nonAdjAsteroids.sort(() => Math.random() - 0.5);
+            const selected = nonAdjAsteroids.slice(0, 6);
+
             const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
             movingAsteroids = selected.map((pos, index) => {
                 const dirIndex = Math.floor(Math.random() * 4);
                 const dir = directions[dirIndex];
                 return {x: pos.x, y: pos.y, dx: dir[0], dy: dir[1], interval: index < 3 ? 2 : 3};
             });
+
+            // Add adjacent asteroids as moving, with direction away
+            for (let adj of adjAsteroids) {
+                const vecX = adj.x - playerX;
+                const vecY = adj.y - playerY;
+                const awayDirs = directions.filter(d => vecX * d[0] + vecY * d[1] > 0);
+                let chosenDir;
+                if (awayDirs.length > 0) {
+                    chosenDir = awayDirs[Math.floor(Math.random() * awayDirs.length)];
+                } else {
+                    chosenDir = directions[Math.floor(Math.random() * 4)];
+                }
+                const interval = Math.random() < 0.5 ? 2 : 3;
+                movingAsteroids.push({x: adj.x, y: adj.y, dx: chosenDir[0], dy: chosenDir[1], interval});
+            }
 
             playerMoves = 0;
             torpedoes = 3;
