@@ -11,7 +11,7 @@
         body { background: #fefefe; margin-top: 20px; } /* Foundation default light bg */
         .game-container { display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .top-row { display: flex; justify-content: center; align-items: flex-start; }
-        .controls { border: 3px solid gray; height: 60px; box-sizing: border-box; width: 1173px; margin-top: 20px; display: flex; justify-content: space-around; align-items: center; } /* Align width with top (200 + 20 + 950 + borders) */
+        .controls { border: 3px solid gray; height: 80px; box-sizing: border-box; width: 1173px; margin-top: 0px; display: flex; justify-content: space-around; align-items: center; } /* Align width with top (200 + 20 + 950 + borders) */
     </style>
 </head>
 <body>
@@ -79,6 +79,9 @@
         let loseReason = 'asteroid';
         let explosionFrame = 0;
         let klingonInterval;
+        let lastTorpedoTime = 0;
+        let torpedoCountdown = 0;
+        let torpedoRechargeInterval;
         let shieldUp = true;
         let shieldRegenTimeout;
 
@@ -86,6 +89,7 @@
         const ctx = canvas.getContext('2d');
         const cellWidth = CANVAS_WIDTH / DISPLAY_WIDTH;
         const cellHeight = CANVAS_HEIGHT / HEIGHT;
+        const fireTorpedosButton = document.getElementById('fireTorpedos');
 
         let enterpriseImg;
         let tempImg = new Image();
@@ -595,7 +599,23 @@
         }
 
         function fireTorpedo() {
-            if (gameState !== 'playing') return;
+            let now = Date.now();
+            if (now - lastTorpedoTime < 5000) return;
+            lastTorpedoTime = now;
+            torpedoCountdown = 5;
+            fireTorpedosButton.disabled = true;
+            fireTorpedosButton.textContent = torpedoCountdown;
+            torpedoRechargeInterval = setInterval(() => {
+                torpedoCountdown--;
+                if (torpedoCountdown > 0) {
+                    fireTorpedosButton.textContent = torpedoCountdown;
+                } else {
+                    clearInterval(torpedoRechargeInterval);
+                    fireTorpedosButton.textContent = '1 - Fire Torpedos';
+                    fireTorpedosButton.disabled = false;
+                }
+            }, 1000);
+
             let targets = [];
             for (let y = 0; y < HEIGHT; y++) {
                 for (let x = 0; x < WORLD_WIDTH; x++) {
@@ -609,7 +629,13 @@
             }
             if (targets.length === 0) return;
             targets.sort((a, b) => a.dist - b.dist);
-            let target = targets[0];
+            torpedoTargets = targets.slice(0, 4);
+            startFiring();
+        }
+
+        function startFiring() {
+            if (torpedoTargets.length === 0 || firing) return;
+            let target = torpedoTargets.shift();
             firing = true;
             torpedoPos = {x: (playerX - viewportLeft) * cellWidth + cellWidth / 2, y: playerY * cellHeight + cellHeight / 2};
             targetPos = {x: (target.x - viewportLeft) * cellWidth + cellWidth / 2, y: target.y * cellHeight + cellHeight / 2};
@@ -637,6 +663,7 @@
                         goalY = -1;
                         loseReason = 'tribble';
                         gameState = 'gameover';
+                        torpedoTargets = [];
                         draw();
                     } else {
                         let hitKlingon = klingons.find(k => k.x === target.x && k.y === target.y);
@@ -654,6 +681,7 @@
                     }
                     firing = false;
                     draw();
+                    startFiring();
                 } else {
                     animationId = requestAnimationFrame(animateTorpedo);
                 }
