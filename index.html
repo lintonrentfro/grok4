@@ -11,7 +11,7 @@
         body { background: #fefefe; margin-top: 20px; } /* Foundation default light bg */
         .game-container { display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .top-row { display: flex; justify-content: center; align-items: flex-start; }
-        .controls { border: 3px solid gray; height: 50px; box-sizing: border-box; width: 1173px; margin-top: 20px; } /* Align width with top (200 + 20 + 950 + borders) */
+        .controls { border: 3px solid gray; height: 50px; box-sizing: border-box; width: 1173px; margin-top: 20px; display: flex; justify-content: space-around; align-items: center; } /* Align width with top (200 + 20 + 950 + borders) */
     </style>
 </head>
 <body>
@@ -30,7 +30,10 @@
         </div>
         <!-- Game Controls Area -->
         <div class="controls">
-            <!-- Ship controls can be added here -->
+            <button id="fireTorpedos" class="button" onclick="fireTorpedo()">1 - Fire Torpedos</button>
+            <button class="button">2 - Fire Phasers</button>
+            <button class="button">3 - placeholder</button>
+            <button class="button">4 - placeholder</button>
         </div>
     </div>
 
@@ -75,12 +78,15 @@
         let torpedoTargets = [];
         let loseReason = 'asteroid';
         let explosionFrame = 0;
-        let klingonInterval;
+        let lastTorpedoTime = 0;
+        let torpedoRechargeInterval;
+        let torpedoCountdown = 0;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         const cellWidth = CANVAS_WIDTH / DISPLAY_WIDTH;
         const cellHeight = CANVAS_HEIGHT / HEIGHT;
+        const fireTorpedosButton = document.getElementById('fireTorpedos');
 
         let enterpriseImg;
         let tempImg = new Image();
@@ -209,6 +215,10 @@
             gameState = hasStarted ? 'playing' : 'ready';
             if (klingonInterval) clearInterval(klingonInterval);
             klingonInterval = setInterval(updateKlingons, 3000);
+            lastTorpedoTime = 0;
+            torpedoCountdown = 0;
+            if (torpedoRechargeInterval) clearInterval(torpedoRechargeInterval);
+            fireTorpedosButton.textContent = '1 - Fire Torpedos';
             draw();
         }
 
@@ -671,7 +681,7 @@
                 case 'ArrowDown': moveBackward(); actionTaken = true; break;
                 case 'ArrowLeft': turnLeft(); break;
                 case 'ArrowRight': turnRight(); break;
-                case ' ': fireTorpedo(); break;
+                case '1': fireTorpedo(); break;
             }
             if (actionTaken) {
                 updateKlingons(true);
