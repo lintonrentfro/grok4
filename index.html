@@ -673,10 +673,8 @@
                                 klingons = klingons.filter(k => !(k.x === target.x && k.y === target.y));
                             }
                         } else {
-                            if (Math.random() < 0.4) {
-                                grid[target.y][target.x] = EMPTY;
-                                movingAsteroids = movingAsteroids.filter(a => !(a.x === target.x && a.y === target.y));
-                            }
+                            grid[target.y][target.x] = EMPTY;
+                            movingAsteroids = movingAsteroids.filter(a => !(a.x === target.x && a.y === target.y));
                         }
                     }
                     firing = false;
