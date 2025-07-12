@@ -82,7 +82,7 @@
         let lastTorpedoTime = 0;
         let torpedoCountdown = 0;
         let torpedoRechargeInterval;
-        let shieldUp = true;
+        let shieldStrength = 2;
         let shieldRegenTimeout;
 
         const canvas = document.getElementById('game');
@@ -132,8 +132,8 @@
             goalX = WORLD_WIDTH - 1;
             goalY = Math.floor(Math.random() * HEIGHT);
 
-            // Place random asteroids (reduced to 20)
-            for (let i = 0; i < 20; i++) {
+            // Place random asteroids (reduced to 10)
+            for (let i = 0; i < 10; i++) {
                 let ax = Math.floor(Math.random() * WORLD_WIDTH);
                 let ay = Math.floor(Math.random() * HEIGHT);
                 if ((ax !== playerX || ay !== playerY) && (ax !== goalX || ay !== goalY)) {
@@ -144,7 +144,7 @@
             grid[playerY][playerX] = ENTERPRISE;
             grid[goalY][goalX] = GOAL;
 
-            // Place 3 Klingons
+            // Place 3 Klingons (further away, dist <= 10)
             klingons = [];
             for (let i = 0; i < 3; i++) {
                 let kx, ky, dist;
@@ -152,7 +152,7 @@
                     kx = Math.floor(Math.random() * WORLD_WIDTH);
                     ky = Math.floor(Math.random() * HEIGHT);
                     dist = Math.abs(kx - playerX) + Math.abs(ky - playerY);
-                } while (grid[ky][kx] !== EMPTY || dist <= 6 || (kx === goalX && ky === goalY));
+                } while (grid[ky][kx] !== EMPTY || dist <= 10 || (kx === goalX && ky === goalY));
                 grid[ky][kx] = KLINGON;
                 klingons.push({x: kx, y: ky, facing: Math.floor(Math.random() * 4), cloaked: true, cloakStart: Date.now(), decloakStart: 0});
             }
@@ -212,7 +212,7 @@
             movesSinceLastFire = 0;
             torpedoTargets = [];
             loseReason = 'asteroid';
-            shieldUp = true;
+            shieldStrength = 2;
             if (shieldRegenTimeout) clearTimeout(shieldRegenTimeout);
             if (animationId) cancelAnimationFrame(animationId);
             gameState = hasStarted ? 'playing' : 'ready';
@@ -242,7 +242,7 @@
                     if (char === ENTERPRISE) {
                         let centerX = localX * cellWidth + cellWidth / 2;
                         let centerY = y * cellHeight + cellHeight / 2;
-                        if (shieldUp) {
+                        if (shieldStrength > 0) {
                             ctx.shadowColor = 'blue';
                             ctx.shadowBlur = 10;
                             ctx.strokeStyle = 'blue';
@@ -414,9 +414,10 @@
                     }
                 }
 
-                // Move up to 2 spaces
+                // Move up to 2 spaces if decloaked, 1 if cloaked
+                let maxMoves = klingon.cloaked ? 1 : 2;
                 let moves = 0;
-                while (moves < 2) {
+                while (moves < maxMoves) {
                     let kdx = 0, kdy = 0;
                     if (klingon.facing === 0) kdy = -1;
                     else if (klingon.facing === 1) kdx = 1;
@@ -449,10 +450,11 @@
                         }
                     }
                     if (hit) {
-                        if (shieldUp) {
-                            shieldUp = false;
-                            shieldRegenTimeout = setTimeout(() => { shieldUp = true; draw(); }, 5000);
-                        } else {
+                        shieldStrength--;
+                        if (shieldStrength <= 0) {
+                            shieldRegenTimeout = setTimeout(() => { shieldStrength = 2; draw(); }, 5000);
+                        }
+                        if (shieldStrength <= 0) {
                             loseReason = 'klingon_torpedo';
                             gameState = 'gameover';
                             animationId = requestAnimationFrame(animateExplosion);
