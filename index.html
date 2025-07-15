@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v7</title>
+    <title>Lunch Fight Club v8</title>
     <style>
         body {
             margin: 0;
@@ -123,6 +123,8 @@
                             dropZone2.style.top = (350 - dz2Height / 2) + 'px';
                             // Start fighters circling
                             startCircling();
+                            // Start fight controls after circling
+                            setTimeout(startFightControls, 4000);
                         }, 2000);
                     }
                 }, 1000);
@@ -262,6 +264,20 @@
                 animate();
             }
             // End of fighters circling feature
+
+            function startFightControls() {
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Shift' && event.location === 1) {
+                        console.log('left shift key was pressed - that\'s Fighter 1\'s attack key');
+                    } else if (event.key === 'Control' && event.location === 1) {
+                        console.log('left control key was pressed - that\'s Fighter 1\'s block key');
+                    } else if (event.key === 'Shift' && event.location === 2) {
+                        console.log('right shift key was pressed - that\'s Fighter 2\'s attack key');
+                    } else if (event.key === 'Control' && event.location === 2) {
+                        console.log('right control key was pressed - that\'s Fighter 2\'s block key');
+                    }
+                });
+            }
         });
     </script>
 </body>
