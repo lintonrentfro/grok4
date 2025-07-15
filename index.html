@@ -5,17 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JavaScript Game</title>
     <style>
+        #wrapper {
+            display: flex;
+            flex-direction: row;
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
         #gameArea {
             width: 1000px;
             height: 700px;
             border: 4px solid black;
-            display: block;
-            margin: 20px auto 0 auto;
+        }
+        #controlsArea {
+            width: 200px;
+            height: 700px;
+            border-left: 3px solid black;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameArea"></canvas>
+    <div id="wrapper">
+        <canvas id="gameArea"></canvas>
+        <div id="controlsArea"></div>
+    </div>
     <script>
         // JavaScript code can be added here for the game logic
     </script>
