@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v5</title>
+    <title>Lunch Fight Club v6</title>
     <style>
         body {
             margin: 0;
@@ -77,6 +77,8 @@
             const dropZone2 = document.getElementById('dropZone2');
             const countdownDiv = document.getElementById('countdown');
             const leftSide = document.querySelector('.left-side');
+            const rightSide = document.querySelector('.right-side');
+            const appArea = document.querySelector('.application-area');
 
             let fighter1Loaded = false;
             let fighter2Loaded = false;
@@ -101,6 +103,26 @@
                         setTimeout(() => {
                             countdownDiv.style.display = 'none';
                             leftSide.style.borderRight = 'none';
+                            // Move drop zones to app area and remove sides
+                            appArea.appendChild(dropZone1);
+                            appArea.appendChild(dropZone2);
+                            leftSide.remove();
+                            rightSide.remove();
+                            // Set absolute positioning
+                            dropZone1.style.position = 'absolute';
+                            dropZone2.style.position = 'absolute';
+                            // Get dimensions
+                            const dz1Width = dropZone1.offsetWidth;
+                            const dz1Height = dropZone1.offsetHeight;
+                            const dz2Width = dropZone2.offsetWidth;
+                            const dz2Height = dropZone2.offsetHeight;
+                            // Set initial positions (centered in original sides)
+                            dropZone1.style.left = (250 - dz1Width / 2) + 'px';
+                            dropZone1.style.top = (350 - dz1Height / 2) + 'px';
+                            dropZone2.style.left = (750 - dz2Width / 2) + 'px';
+                            dropZone2.style.top = (350 - dz2Height / 2) + 'px';
+                            // Start fighters circling
+                            startCircling();
                         }, 2000);
                     }
                 }, 1000);
@@ -192,6 +214,50 @@
                     }
                 }
             });
+
+            // Start of fighters circling feature
+            function startCircling() {
+                const centerX = 500;
+                const centerY = 350;
+                const rx = 250;
+                const ry = 50;
+                const phase1 = Math.PI; // Start left
+                const phase2 = 0; // Start right
+                const duration = 3000;
+                const startTime = performance.now();
+
+                const dz1Width = dropZone1.offsetWidth;
+                const dz1Height = dropZone1.offsetHeight;
+                const dz2Width = dropZone2.offsetWidth;
+                const dz2Height = dropZone2.offsetHeight;
+
+                function animate() {
+                    const time = performance.now() - startTime;
+                    if (time > duration) {
+                        return;
+                    }
+
+                    const progress = time / duration;
+                    const theta = progress * 2 * Math.PI; // One full circle in 3 seconds
+
+                    // Fighter 1 position
+                    const x1 = centerX + rx * Math.cos(phase1 + theta);
+                    const y1 = centerY + ry * Math.sin(phase1 + theta);
+                    dropZone1.style.left = (x1 - dz1Width / 2) + 'px';
+                    dropZone1.style.top = (y1 - dz1Height / 2) + 'px';
+
+                    // Fighter 2 position
+                    const x2 = centerX + rx * Math.cos(phase2 + theta);
+                    const y2 = centerY + ry * Math.sin(phase2 + theta);
+                    dropZone2.style.left = (x2 - dz2Width / 2) + 'px';
+                    dropZone2.style.top = (y2 - dz2Height / 2) + 'px';
+
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+            }
+            // End of fighters circling feature
         });
     </script>
 </body>
