@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v3</title>
+    <title>Lunch Fight Club v4</title>
     <style>
         body {
             margin: 0;
@@ -18,6 +18,7 @@
             display: flex;
             flex-direction: row;
             align-items: center;
+            position: relative;
         }
         .left-side, .right-side {
             width: 50%;
@@ -39,6 +40,24 @@
             text-align: center;
             transition: background 0.3s;
         }
+        .no-border {
+            border: none;
+        }
+        .countdown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            font-size: 100px;
+            color: red;
+            z-index: 10;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -49,11 +68,39 @@
         <div class="right-side">
             <div id="dropZone2" class="drop-zone">Fighter 2</div>
         </div>
+        <div id="countdown" class="countdown"></div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
+            const countdownDiv = document.getElementById('countdown');
+
+            let fighter1Loaded = false;
+            let fighter2Loaded = false;
+
+            function checkBothLoaded() {
+                if (fighter1Loaded && fighter2Loaded) {
+                    startCountdown();
+                }
+            }
+
+            function startCountdown() {
+                countdownDiv.style.display = 'flex';
+                let count = 3;
+                countdownDiv.textContent = count;
+                const interval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countdownDiv.textContent = count;
+                    } else if (count === 0) {
+                        countdownDiv.textContent = 'Fight!';
+                        clearInterval(interval);
+                        // Optionally, remove the countdown after a delay
+                        // setTimeout(() => { countdownDiv.style.display = 'none'; }, 2000);
+                    }
+                }, 1000);
+            }
 
             // For Fighter 1
             dropZone1.addEventListener('dragover', (e) => {
@@ -81,6 +128,9 @@
                             img.style.width = 'auto';
                             dropZone1.innerHTML = '';
                             dropZone1.appendChild(img);
+                            dropZone1.classList.add('no-border');
+                            fighter1Loaded = true;
+                            checkBothLoaded();
                         };
                         reader.readAsDataURL(file);
                     } else {
@@ -115,6 +165,9 @@
                             img.style.width = 'auto';
                             dropZone2.innerHTML = '';
                             dropZone2.appendChild(img);
+                            dropZone2.classList.add('no-border');
+                            fighter2Loaded = true;
+                            checkBothLoaded();
                         };
                         reader.readAsDataURL(file);
                     } else {
