@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v1</title>
+    <title>Lunch Fight Club v2</title>
     <style>
         body {
             margin: 0;
@@ -17,14 +17,110 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: row;
-            justify-content: space-around;
             align-items: center;
+        }
+        .left-side, .right-side {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .left-side {
+            border-right: 2px dotted #000;
+        }
+        .drop-zone {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background 0.3s;
         }
     </style>
 </head>
 <body>
     <div class="application-area">
-        <!-- Application content will go here -->
+        <div class="left-side">
+            <div id="dropZone1" class="drop-zone">Fighter 1</div>
+        </div>
+        <div class="right-side">
+            <div id="dropZone2" class="drop-zone">Fighter 2</div>
+        </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropZone1 = document.getElementById('dropZone1');
+            const dropZone2 = document.getElementById('dropZone2');
+
+            // For Fighter 1
+            dropZone1.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone1.style.background = '#ccc';
+            });
+
+            dropZone1.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone1.style.background = '';
+            });
+
+            dropZone1.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone1.style.background = '';
+                if (e.dataTransfer.files.length) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.style.height = '200px';
+                            img.style.width = 'auto';
+                            dropZone1.innerHTML = '';
+                            dropZone1.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please drop an image file.');
+                    }
+                }
+            });
+
+            // For Fighter 2
+            dropZone2.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '#ccc';
+            });
+
+            dropZone2.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '';
+            });
+
+            dropZone2.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '';
+                if (e.dataTransfer.files.length) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.style.height = '200px';
+                            img.style.width = 'auto';
+                            dropZone2.innerHTML = '';
+                            dropZone2.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please drop an image file.');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
