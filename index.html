@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My JavaScript Web Application</title>
+    <title>Lunch Fight Club</title>
     <style>
         body {
             margin: 0;
@@ -16,11 +16,84 @@
             margin: 20px auto 0;
             box-sizing: border-box; /* Ensures border is included in width/height */
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .drop-zone {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #000;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background 0.3s;
+        }
     </style>
 </head>
 <body>
     <div class="application-area">
         <!-- Application content will go here -->
     </div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <h2>Player 1, Upload Your Fighter</h2>
+            <div id="dropZone" class="drop-zone">Drop File Here</div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('myModal');
+            const dropZone = document.getElementById('dropZone');
+
+            modal.style.display = 'block';
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.background = '#ccc';
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.background = '';
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.background = '';
+                if (e.dataTransfer.files.length) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            window.fighter1 = event.target.result; // Stored as data URL in memory
+                            modal.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please drop an image file.');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
