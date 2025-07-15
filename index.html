@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v6</title>
+    <title>Lunch Fight Club v7</title>
     <style>
         body {
             margin: 0;
@@ -220,16 +220,19 @@
                 const centerX = 500;
                 const centerY = 350;
                 const rx = 250;
-                const ry = 50;
+                const ry = 200; // Increased to prevent overlap
                 const phase1 = Math.PI; // Start left
                 const phase2 = 0; // Start right
-                const duration = 3000;
+                const duration = 4000;
                 const startTime = performance.now();
 
                 const dz1Width = dropZone1.offsetWidth;
                 const dz1Height = dropZone1.offsetHeight;
                 const dz2Width = dropZone2.offsetWidth;
                 const dz2Height = dropZone2.offsetHeight;
+
+                const speed1 = 0.8; // Slower overall, varied
+                const speed2 = 1.2; // Varied
 
                 function animate() {
                     const time = performance.now() - startTime;
@@ -238,17 +241,18 @@
                     }
 
                     const progress = time / duration;
-                    const theta = progress * 2 * Math.PI; // One full circle in 3 seconds
+                    const theta1 = progress * Math.PI * speed1; // Slowed to half circle, adjusted by speed
+                    const theta2 = progress * Math.PI * speed2;
 
                     // Fighter 1 position
-                    const x1 = centerX + rx * Math.cos(phase1 + theta);
-                    const y1 = centerY + ry * Math.sin(phase1 + theta);
+                    const x1 = centerX + rx * Math.cos(phase1 + theta1);
+                    const y1 = centerY + ry * Math.sin(phase1 + theta1);
                     dropZone1.style.left = (x1 - dz1Width / 2) + 'px';
                     dropZone1.style.top = (y1 - dz1Height / 2) + 'px';
 
                     // Fighter 2 position
-                    const x2 = centerX + rx * Math.cos(phase2 + theta);
-                    const y2 = centerY + ry * Math.sin(phase2 + theta);
+                    const x2 = centerX + rx * Math.cos(phase2 + theta2);
+                    const y2 = centerY + ry * Math.sin(phase2 + theta2);
                     dropZone2.style.left = (x2 - dz2Width / 2) + 'px';
                     dropZone2.style.top = (y2 - dz2Height / 2) + 'px';
 
