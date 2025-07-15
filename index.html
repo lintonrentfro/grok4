@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Lunch Fight Club</title>
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .application-area {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunch Fight Club</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .application-area {
             width: 1000px;
             height: 700px;
             border: 4px solid black;
@@ -43,7 +43,7 @@
         .drop-zone {
             width: 200px;
             height: 200px;
-            border: 2 dashed dashed #000;
+            border: 2px dashed #000;
             margin: 20px auto;
             display: flex;
             align-items: center;
@@ -134,7 +134,7 @@
                 dropZone2.style.background = '';
                 if (e.dataTransfer.files.length) {
                     const file = e.dataTransfer.files[0];
-                    if (file.type.startsWith('image/') {
+                    if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             window.fighter2 = event.target.result;
