@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v8</title>
+    <title>Lunch Fight Club v9</title>
     <style>
         body {
             margin: 0;
@@ -64,10 +64,18 @@
 <body>
     <div class="application-area">
         <div class="left-side">
-            <div id="dropZone1" class="drop-zone">Fighter 1</div>
+            <div id="dropZone1" class="drop-zone">
+                <div>Fighter 1</div>
+                <div>Attack: Left Shift</div>
+                <div>Block: Left Ctrl</div>
+            </div>
         </div>
         <div class="right-side">
-            <div id="dropZone2" class="drop-zone">Fighter 2</div>
+            <div id="dropZone2" class="drop-zone">
+                <div>Fighter 2</div>
+                <div>Attack: Right Shift</div>
+                <div>Block: Left Arrow</div>
+            </div>
         </div>
         <div id="countdown" class="countdown"></div>
     </div>
@@ -273,8 +281,8 @@
                         console.log('left control key was pressed - that\'s Fighter 1\'s block key');
                     } else if (event.key === 'Shift' && event.location === 2) {
                         console.log('right shift key was pressed - that\'s Fighter 2\'s attack key');
-                    } else if (event.key === 'Control' && event.location === 2) {
-                        console.log('right control key was pressed - that\'s Fighter 2\'s block key');
+                    } else if (event.key === 'ArrowLeft') {
+                        console.log('left arrow key was pressed - that\'s Fighter 2\'s block key');
                     }
                 });
             }
