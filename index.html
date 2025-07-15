@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        .application-area {
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lunch Fight Club</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .application-area {
             width: 1000px;
             height: 700px;
             border: 4px solid black;
             margin: 20px auto 0;
-            box-sizing: border-box; /* Ensures border is included in width/height */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
         }
         .modal {
             display: none;
@@ -39,7 +43,7 @@
         .drop-zone {
             width: 200px;
             height: 200px;
-            border: 2px dashed #000;
+            border: 2 dashed dashed #000;
             margin: 20px auto;
             display: flex;
             align-items: center;
@@ -59,33 +63,94 @@
             <div id="dropZone" class="drop-zone">Drop File Here</div>
         </div>
     </div>
+    <div id="thanksModal" class="modal">
+        <div class="modal-content">
+            <h2>Thanks</h2>
+        </div>
+    </div>
+    <div id="myModal2" class="modal">
+        <div class="modal-content">
+            <h2>Player 2, Upload Your Fighter</h2>
+            <div id="dropZone2" class="drop-zone">Drop File Here</div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('myModal');
-            const dropZone = document.getElementById('dropZone');
+            const modal1 = document.getElementById('myModal');
+            const modal2 = document.getElementById('myModal2');
+            const thanks = document.getElementById('thanksModal');
+            const dropZone1 = document.getElementById('dropZone');
+            const dropZone2 = document.getElementById('dropZone2');
 
-            modal.style.display = 'block';
+            modal1.style.display = 'block';
 
-            dropZone.addEventListener('dragover', (e) => {
+            // For Fighter 1
+            dropZone1.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                dropZone.style.background = '#ccc';
+                dropZone1.style.background = '#ccc';
             });
 
-            dropZone.addEventListener('dragleave', (e) => {
+            dropZone1.addEventListener('dragleave', (e) => {
                 e.preventDefault();
-                dropZone.style.background = '';
+                dropZone1.style.background = '';
             });
 
-            dropZone.addEventListener('drop', (e) => {
+            dropZone1.addEventListener('drop', (e) => {
                 e.preventDefault();
-                dropZone.style.background = '';
+                dropZone1.style.background = '';
                 if (e.dataTransfer.files.length) {
                     const file = e.dataTransfer.files[0];
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             window.fighter1 = event.target.result; // Stored as data URL in memory
-                            modal.style.display = 'none';
+                            modal1.style.display = 'none';
+                            thanks.style.display = 'block';
+                            setTimeout(() => {
+                                thanks.style.display = 'none';
+                                modal2.style.display = 'block';
+                            }, 1000);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please drop an image file.');
+                    }
+                }
+            });
+
+            // For Fighter 2
+            dropZone2.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '#ccc';
+            });
+
+            dropZone2.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '';
+            });
+
+            dropZone2.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone2.style.background = '';
+                if (e.dataTransfer.files.length) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/') {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            window.fighter2 = event.target.result;
+                            modal2.style.display = 'none';
+                            // Display both images
+                            const appArea = document.querySelector('.application-area');
+                            const img1 = document.createElement('img');
+                            img1.src = window.fighter1;
+                            img1.style.height = '200px';
+                            img1.style.width = 'auto';
+                            appArea.appendChild(img1);
+                            const img2 = document.createElement('img');
+                            img2.src = window.fighter2;
+                            img2.style.height = '200px';
+                            img2.style.width = 'auto';
+                            appArea.appendChild(img2);
                         };
                         reader.readAsDataURL(file);
                     } else {
