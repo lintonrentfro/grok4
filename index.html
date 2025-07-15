@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club</title>
+    <title>Lunch Fight Club v1</title>
     <style>
         body {
             margin: 0;
@@ -20,145 +20,11 @@
             justify-content: space-around;
             align-items: center;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .drop-zone {
-            width: 200px;
-            height: 200px;
-            border: 2px dashed #000;
-            margin: 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            transition: background 0.3s;
-        }
     </style>
 </head>
 <body>
     <div class="application-area">
         <!-- Application content will go here -->
     </div>
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <h2>Player 1, Upload Your Fighter</h2>
-            <div id="dropZone" class="drop-zone">Drop File Here</div>
-        </div>
-    </div>
-    <div id="thanksModal" class="modal">
-        <div class="modal-content">
-            <h2>Thanks</h2>
-        </div>
-    </div>
-    <div id="myModal2" class="modal">
-        <div class="modal-content">
-            <h2>Player 2, Upload Your Fighter</h2>
-            <div id="dropZone2" class="drop-zone">Drop File Here</div>
-        </div>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal1 = document.getElementById('myModal');
-            const modal2 = document.getElementById('myModal2');
-            const thanks = document.getElementById('thanksModal');
-            const dropZone1 = document.getElementById('dropZone');
-            const dropZone2 = document.getElementById('dropZone2');
-
-            modal1.style.display = 'block';
-
-            // For Fighter 1
-            dropZone1.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone1.style.background = '#ccc';
-            });
-
-            dropZone1.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone1.style.background = '';
-            });
-
-            dropZone1.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone1.style.background = '';
-                if (e.dataTransfer.files.length) {
-                    const file = e.dataTransfer.files[0];
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            window.fighter1 = event.target.result; // Stored as data URL in memory
-                            modal1.style.display = 'none';
-                            thanks.style.display = 'block';
-                            setTimeout(() => {
-                                thanks.style.display = 'none';
-                                modal2.style.display = 'block';
-                            }, 1000);
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        alert('Please drop an image file.');
-                    }
-                }
-            });
-
-            // For Fighter 2
-            dropZone2.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone2.style.background = '#ccc';
-            });
-
-            dropZone2.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone2.style.background = '';
-            });
-
-            dropZone2.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone2.style.background = '';
-                if (e.dataTransfer.files.length) {
-                    const file = e.dataTransfer.files[0];
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            window.fighter2 = event.target.result;
-                            modal2.style.display = 'none';
-                            // Display both images
-                            const appArea = document.querySelector('.application-area');
-                            const img1 = document.createElement('img');
-                            img1.src = window.fighter1;
-                            img1.style.height = '200px';
-                            img1.style.width = 'auto';
-                            appArea.appendChild(img1);
-                            const img2 = document.createElement('img');
-                            img2.src = window.fighter2;
-                            img2.style.height = '200px';
-                            img2.style.width = 'auto';
-                            appArea.appendChild(img2);
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        alert('Please drop an image file.');
-                    }
-                }
-            });
-        });
-    </script>
 </body>
 </html>
