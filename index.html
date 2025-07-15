@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v2</title>
+    <title>Lunch Fight Club v3</title>
     <style>
         body {
             margin: 0;
@@ -74,8 +74,9 @@
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
+                            window.fighter1 = event.target.result; // Hold in memory
                             const img = document.createElement('img');
-                            img.src = event.target.result;
+                            img.src = window.fighter1;
                             img.style.height = '200px';
                             img.style.width = 'auto';
                             dropZone1.innerHTML = '';
@@ -107,8 +108,9 @@
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
+                            window.fighter2 = event.target.result; // Hold in memory
                             const img = document.createElement('img');
-                            img.src = event.target.result;
+                            img.src = window.fighter2;
                             img.style.height = '200px';
                             img.style.width = 'auto';
                             dropZone2.innerHTML = '';
