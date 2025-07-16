@@ -74,7 +74,7 @@
             <div id="dropZone2" class="drop-zone">
                 <div>Fighter 2</div>
                 <div>Attack: Right Shift</div>
-                <div>Block: Left Arrow</div>
+                <div>Block: Right Arrow</div>
             </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -281,8 +281,8 @@
                         console.log('left control key was pressed - that\'s Fighter 1\'s block key');
                     } else if (event.key === 'Shift' && event.location === 2) {
                         console.log('right shift key was pressed - that\'s Fighter 2\'s attack key');
-                    } else if (event.key === 'ArrowLeft') {
-                        console.log('left arrow key was pressed - that\'s Fighter 2\'s block key');
+                    } else if (event.key === 'ArrowRight') {
+                        console.log('right arrow key was pressed - that\'s Fighter 2\'s block key');
                     }
                 });
             }
