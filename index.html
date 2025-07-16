@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunch Fight Club v9</title>
+    <title>Lunch Fight Club v11</title>
     <style>
         body {
             margin: 0;
@@ -129,6 +129,9 @@
                             dropZone1.style.top = (350 - dz1Height / 2) + 'px';
                             dropZone2.style.left = (750 - dz2Width / 2) + 'px';
                             dropZone2.style.top = (350 - dz2Height / 2) + 'px';
+                            // Remove metadata displays if any
+                            const metaDivs = document.querySelectorAll('.metadata-display');
+                            metaDivs.forEach(div => div.remove());
                             // Start fighters circling
                             startCircling();
                             // Start fight controls after circling
@@ -141,6 +144,36 @@
             function capitalizeName(fileName) {
                 const nameWithoutExt = fileName.replace(/\.[^/.]+$/, "");
                 return nameWithoutExt.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            }
+
+            function extractPNGMetadata(arrayBuffer) {
+                const dataView = new DataView(arrayBuffer);
+                if (dataView.getUint32(0) !== 0x89504E47 || dataView.getUint32(4) !== 0x0D0A1A0A) {
+                    return null;
+                }
+                let position = 8;
+                let metadata = {};
+                while (position < arrayBuffer.byteLength) {
+                    const length = dataView.getUint32(position);
+                    position += 4;
+                    const typeBytes = new Uint8Array(arrayBuffer, position, 4);
+                    const type = String.fromCharCode(...typeBytes);
+                    position += 4;
+                    if (type === 'tEXt') {
+                        let keyEnd = position;
+                        while (dataView.getUint8(keyEnd) !== 0 && keyEnd < position + length) {
+                            keyEnd++;
+                        }
+                        const key = new TextDecoder().decode(new Uint8Array(arrayBuffer, position, keyEnd - position));
+                        const valueStart = keyEnd + 1;
+                        const valueLength = position + length - valueStart;
+                        const value = new TextDecoder().decode(new Uint8Array(arrayBuffer, valueStart, valueLength));
+                        metadata[key] = value;
+                    }
+                    position += length;
+                    position += 4; // CRC
+                }
+                return metadata;
             }
 
             // For Fighter 1
@@ -159,7 +192,7 @@
                 dropZone1.style.background = '';
                 if (e.dataTransfer.files.length) {
                     const file = e.dataTransfer.files[0];
-                    if (file.type.startsWith('image/')) {
+                    if (file.type === 'image/png') {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             window.fighter1 = event.target.result; // Hold in memory
@@ -178,8 +211,14 @@
                             checkBothLoaded();
                         };
                         reader.readAsDataURL(file);
+
+                        const metaReader = new FileReader();
+                        metaReader.onload = (event) => {
+                            window.fighter1Metadata = extractPNGMetadata(event.target.result);
+                        };
+                        metaReader.readAsArrayBuffer(file);
                     } else {
-                        alert('Please drop an image file.');
+                        alert('It needs to be a PNG to read the metadata correctly.');
                     }
                 }
             });
@@ -200,7 +239,7 @@
                 dropZone2.style.background = '';
                 if (e.dataTransfer.files.length) {
                     const file = e.dataTransfer.files[0];
-                    if (file.type.startsWith('image/')) {
+                    if (file.type === 'image/png') {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             window.fighter2 = event.target.result; // Hold in memory
@@ -219,8 +258,44 @@
                             checkBothLoaded();
                         };
                         reader.readAsDataURL(file);
+
+                        const metaReader = new FileReader();
+                        metaReader.onload = (event) => {
+                            window.fighter2Metadata = extractPNGMetadata(event.target.result);
+                        };
+                        metaReader.readAsArrayBuffer(file);
                     } else {
-                        alert('Please drop an image file.');
+                        alert('It needs to be a PNG to read the metadata correctly.');
+                    }
+                }
+            });
+
+            // Test key for metadata display
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 't') {
+                    if (window.fighter1Metadata) {
+                        const metaDiv1 = document.createElement('pre');
+                        metaDiv1.classList.add('metadata-display');
+                        metaDiv1.style.position = 'absolute';
+                        metaDiv1.style.left = (dropZone1.getBoundingClientRect().right + 10 - appArea.getBoundingClientRect().left) + 'px';
+                        metaDiv1.style.top = (dropZone1.getBoundingClientRect().top - appArea.getBoundingClientRect().top) + 'px';
+                        metaDiv1.style.background = 'white';
+                        metaDiv1.style.padding = '10px';
+                        metaDiv1.style.border = '1px solid black';
+                        metaDiv1.textContent = JSON.stringify(window.fighter1Metadata, null, 2);
+                        appArea.appendChild(metaDiv1);
+                    }
+                    if (window.fighter2Metadata) {
+                        const metaDiv2 = document.createElement('pre');
+                        metaDiv2.classList.add('metadata-display');
+                        metaDiv2.style.position = 'absolute';
+                        metaDiv2.style.left = (dropZone2.getBoundingClientRect().right + 10 - appArea.getBoundingClientRect().left) + 'px';
+                        metaDiv2.style.top = (dropZone2.getBoundingClientRect().top - appArea.getBoundingClientRect().top) + 'px';
+                        metaDiv2.style.background = 'white';
+                        metaDiv2.style.padding = '10px';
+                        metaDiv2.style.border = '1px solid black';
+                        metaDiv2.textContent = JSON.stringify(window.fighter2Metadata, null, 2);
+                        appArea.appendChild(metaDiv2);
                     }
                 }
             });
