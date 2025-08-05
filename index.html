@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v12</title>
+    <title>Office Battles - v13</title>
     <style>
         body {
             background-color: lightgrey;
@@ -85,6 +85,8 @@
         </form>
     </div>
     <script>
+        let playerCount = 0;
+
         document.getElementById('char-creator').addEventListener('click', function() {
             document.getElementById('name').value = '';
             document.getElementById('strength').value = 10;
@@ -156,9 +158,10 @@
             window[charVarName] = character;
             console.log(JSON.stringify(character));
 
+            playerCount++;
             const charDiv = document.createElement('div');
             charDiv.className = 'character';
-            charDiv.innerHTML = 'X';
+            charDiv.innerHTML = `P${playerCount}`;
             charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
             charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
             document.getElementById('game-area').appendChild(charDiv);
