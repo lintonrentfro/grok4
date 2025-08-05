@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v17</title>
+    <title>Office Battles - v18</title>
     <style>
         body {
             background-color: lightgrey;
@@ -233,17 +233,46 @@
             logMessage("Battle begins!");
 
             const interval = setInterval(() => {
-                // Move characters randomly
+                // Move characters towards nearest opponent
                 characters.forEach(char => {
                     if (char.hp > 0) {
-                        let left = parseFloat(char.element.style.left);
-                        let top = parseFloat(char.element.style.top);
-                        left += (Math.random() * 20 - 10);
-                        top += (Math.random() * 20 - 10);
-                        left = Math.max(0, Math.min(950, left));
-                        top = Math.max(60, Math.min(650, top));
-                        char.element.style.left = `${left}px`;
-                        char.element.style.top = `${top}px`;
+                        // Find nearest alive opponent
+                        let nearest = null;
+                        let minDist = Infinity;
+                        characters.forEach(other => {
+                            if (other !== char && other.hp > 0) {
+                                let ax = parseFloat(char.element.style.left) + 25;
+                                let ay = parseFloat(char.element.style.top) + 25;
+                                let ox = parseFloat(other.element.style.left) + 25;
+                                let oy = parseFloat(other.element.style.top) + 25;
+                                let dist = Math.sqrt((ax - ox) ** 2 + (ay - oy) ** 2);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    nearest = other;
+                                }
+                            }
+                        });
+
+                        if (nearest) {
+                            let left = parseFloat(char.element.style.left);
+                            let top = parseFloat(char.element.style.top);
+                            let tx = parseFloat(nearest.element.style.left);
+                            let ty = parseFloat(nearest.element.style.top);
+                            let deltaX = tx - left;
+                            let deltaY = ty - top;
+                            let dist = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+                            if (dist > 0) {
+                                let step = Math.random() * 10 + 5; // short distances, 5-15
+                                let moveX = (deltaX / dist) * step;
+                                let moveY = (deltaY / dist) * step;
+                                left += moveX;
+                                top += moveY;
+                                left = Math.max(0, Math.min(950, left));
+                                top = Math.max(60, Math.min(650, top));
+                                char.element.style.left = `${left}px`;
+                                char.element.style.top = `${top}px`;
+                            }
+                        }
                     }
                 });
 
