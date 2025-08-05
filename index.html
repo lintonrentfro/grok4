@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v11</title>
+    <title>Office Battles - v12</title>
     <style>
         body {
             background-color: lightgrey;
@@ -16,6 +16,7 @@
             background-color: white;
             border: 3px solid black;
             margin: 40px auto 0 auto;
+            position: relative;
         }
         #button-row {
             width: 100%;
@@ -52,6 +53,15 @@
         }
         #remaining-points {
             border: none;
+        }
+        .character {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 50px;
+            line-height: 50px;
+            text-align: center;
+            color: black;
         }
     </style>
 </head>
@@ -145,6 +155,15 @@
             const charVarName = 'Character_' + name;
             window[charVarName] = character;
             console.log(JSON.stringify(character));
+
+            const charDiv = document.createElement('div');
+            charDiv.className = 'character';
+            charDiv.innerHTML = 'X';
+            charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
+            charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
+            document.getElementById('game-area').appendChild(charDiv);
+            character.element = charDiv;
+
             document.getElementById('modal').style.display = 'none';
         });
     </script>
