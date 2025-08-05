@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v8</title>
+    <title>Office Battles - v9</title>
     <style>
         body {
             background-color: lightgrey;
@@ -70,11 +70,11 @@
                     <option>Engineer</option>
                 </select>
             </label>
-            <label for="strength">Strength: <input type="number" id="strength" value="10"></label>
-            <label for="dexterity">Dexterity: <input type="number" id="dexterity" value="10"></label>
-            <label for="luck">Luck: <input type="number" id="luck" value="10"></label>
-            <label for="magic">Magic: <input type="number" id="magic" value="10"></label>
-            <label for="weapons">Weapons: <input type="number" id="weapons" value="10"></label>
+            <label for="strength">Strength: <input type="number" id="strength" value="10" min="0" step="1"></label>
+            <label for="dexterity">Dexterity: <input type="number" id="dexterity" value="10" min="0" step="1"></label>
+            <label for="luck">Luck: <input type="number" id="luck" value="10" min="0" step="1"></label>
+            <label for="magic">Magic: <input type="number" id="magic" value="10" min="0" step="1"></label>
+            <label for="weapons">Weapons: <input type="number" id="weapons" value="10" min="0" step="1"></label>
             <button type="button" id="enter-area">Enter Area</button>
         </form>
     </div>
@@ -95,8 +95,26 @@
             const enterBtn = document.getElementById('enter-area');
             enterBtn.disabled = remaining < 0;
         }
+
+        function handleStatInput(event) {
+            const input = event.target;
+            let newValue = parseInt(input.value) || 0;
+            let otherSum = 0;
+            stats.forEach(stat => {
+                if (stat !== input.id) {
+                    otherSum += parseInt(document.getElementById(stat).value) || 0;
+                }
+            });
+            const max = 50 - otherSum;
+            const clamped = Math.max(0, Math.min(newValue, max));
+            if (clamped !== newValue) {
+                input.value = clamped;
+            }
+            updateRemaining();
+        }
+
         stats.forEach(stat => {
-            document.getElementById(stat).addEventListener('input', updateRemaining);
+            document.getElementById(stat).addEventListener('input', handleStatInput);
         });
         updateRemaining(); // Initial call
     </script>
