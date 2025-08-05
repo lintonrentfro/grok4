@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v7</title>
+    <title>Office Battles - v8</title>
     <style>
         body {
             background-color: lightgrey;
@@ -62,7 +62,7 @@
     <div id="modal">
         <form>
             <label for="name">Name: <input type="text" id="name"></label>
-            <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0"></label>
+            <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0" readonly></label>
             <label for="job">Job: 
                 <select id="job">
                     <option>Janitor</option>
@@ -75,13 +75,30 @@
             <label for="luck">Luck: <input type="number" id="luck" value="10"></label>
             <label for="magic">Magic: <input type="number" id="magic" value="10"></label>
             <label for="weapons">Weapons: <input type="number" id="weapons" value="10"></label>
-            <button type="button">Enter Area</button>
+            <button type="button" id="enter-area">Enter Area</button>
         </form>
     </div>
     <script>
         document.getElementById('char-creator').addEventListener('click', function() {
             document.getElementById('modal').style.display = 'block';
         });
+
+        const stats = ['strength', 'dexterity', 'luck', 'magic', 'weapons'];
+        function updateRemaining() {
+            let sum = 0;
+            stats.forEach(stat => {
+                const value = parseInt(document.getElementById(stat).value) || 0;
+                sum += value;
+            });
+            const remaining = 50 - sum;
+            document.getElementById('remaining-points').value = remaining;
+            const enterBtn = document.getElementById('enter-area');
+            enterBtn.disabled = remaining < 0;
+        }
+        stats.forEach(stat => {
+            document.getElementById(stat).addEventListener('input', updateRemaining);
+        });
+        updateRemaining(); // Initial call
     </script>
 </body>
 </html>
