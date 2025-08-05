@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v9</title>
+    <title>Office Battles - v10</title>
     <style>
         body {
             background-color: lightgrey;
@@ -50,6 +50,9 @@
         #modal label {
             margin-bottom: 10px;
         }
+        #remaining-points {
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -75,7 +78,7 @@
             <label for="luck">Luck: <input type="number" id="luck" value="10" min="0" step="1"></label>
             <label for="magic">Magic: <input type="number" id="magic" value="10" min="0" step="1"></label>
             <label for="weapons">Weapons: <input type="number" id="weapons" value="10" min="0" step="1"></label>
-            <button type="button" id="enter-area">Enter Area</button>
+            <button type="button" id="enter-arena">Enter Arena</button>
         </form>
     </div>
     <script>
@@ -92,7 +95,7 @@
             });
             const remaining = 50 - sum;
             document.getElementById('remaining-points').value = remaining;
-            const enterBtn = document.getElementById('enter-area');
+            const enterBtn = document.getElementById('enter-arena');
             enterBtn.disabled = remaining < 0;
         }
 
@@ -117,6 +120,34 @@
             document.getElementById(stat).addEventListener('input', handleStatInput);
         });
         updateRemaining(); // Initial call
+
+        document.getElementById('enter-arena').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                return; // Optionally alert, but skipping for now
+            }
+            const job = document.getElementById('job').value;
+            const strength = parseInt(document.getElementById('strength').value) || 0;
+            const dexterity = parseInt(document.getElementById('dexterity').value) || 0;
+            const luck = parseInt(document.getElementById('luck').value) || 0;
+            const magic = parseInt(document.getElementById('magic').value) || 0;
+            const weapons = parseInt(document.getElementById('weapons').value) || 0;
+
+            const character = {
+                name: name,
+                job: job,
+                strength: strength,
+                dexterity: dexterity,
+                luck: luck,
+                magic: magic,
+                weapons: weapons
+            };
+
+            const charVarName = 'Character_' + name;
+            window[charVarName] = character;
+            console.log(JSON.stringify(character));
+            document.getElementById('modal').style.display = 'none';
+        });
     </script>
 </body>
 </html>
