@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v14</title>
+    <title>Office Battles - v15</title>
     <style>
         body {
             background-color: lightgrey;
@@ -58,12 +58,21 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            font-size: 50px;
-            line-height: 50px;
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: black;
             border: 2px solid black;
             box-sizing: border-box;
+            overflow: hidden;
+            font-size: 20px;
+        }
+        .character span {
+            width: 45px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -160,7 +169,7 @@
 
             const charDiv = document.createElement('div');
             charDiv.className = 'character';
-            charDiv.innerHTML = name;
+            charDiv.innerHTML = `<span>${name}</span>`;
             charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
             charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
             document.getElementById('game-area').appendChild(charDiv);
