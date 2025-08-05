@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v10</title>
+    <title>Office Battles - v11</title>
     <style>
         body {
             background-color: lightgrey;
@@ -66,13 +66,6 @@
         <form>
             <label for="name">Name: <input type="text" id="name"></label>
             <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0" readonly></label>
-            <label for="job">Job: 
-                <select id="job">
-                    <option>Janitor</option>
-                    <option>Accountant</option>
-                    <option>Engineer</option>
-                </select>
-            </label>
             <label for="strength">Strength: <input type="number" id="strength" value="10" min="0" step="1"></label>
             <label for="dexterity">Dexterity: <input type="number" id="dexterity" value="10" min="0" step="1"></label>
             <label for="luck">Luck: <input type="number" id="luck" value="10" min="0" step="1"></label>
@@ -83,6 +76,13 @@
     </div>
     <script>
         document.getElementById('char-creator').addEventListener('click', function() {
+            document.getElementById('name').value = '';
+            document.getElementById('strength').value = 10;
+            document.getElementById('dexterity').value = 10;
+            document.getElementById('luck').value = 10;
+            document.getElementById('magic').value = 10;
+            document.getElementById('weapons').value = 10;
+            updateRemaining();
             document.getElementById('modal').style.display = 'block';
         });
 
@@ -124,9 +124,9 @@
         document.getElementById('enter-arena').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
             if (!name) {
-                return; // Optionally alert, but skipping for now
+                alert("Please fill in the Name field.");
+                return;
             }
-            const job = document.getElementById('job').value;
             const strength = parseInt(document.getElementById('strength').value) || 0;
             const dexterity = parseInt(document.getElementById('dexterity').value) || 0;
             const luck = parseInt(document.getElementById('luck').value) || 0;
@@ -135,7 +135,6 @@
 
             const character = {
                 name: name,
-                job: job,
                 strength: strength,
                 dexterity: dexterity,
                 luck: luck,
