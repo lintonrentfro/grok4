@@ -71,8 +71,6 @@
             width: 45px;
             text-align: center;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -169,11 +167,21 @@
 
             const charDiv = document.createElement('div');
             charDiv.className = 'character';
-            charDiv.innerHTML = `<span>${name}</span>`;
+            const span = document.createElement('span');
+            span.textContent = name;
+            charDiv.appendChild(span);
             charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
             charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
             document.getElementById('game-area').appendChild(charDiv);
             character.element = charDiv;
+
+            // Adjust font size to fit
+            let fontSize = 20;
+            span.style.fontSize = `${fontSize}px`;
+            while (span.scrollWidth > 45 && fontSize > 1) {
+                fontSize--;
+                span.style.fontSize = `${fontSize}px`;
+            }
 
             document.getElementById('modal').style.display = 'none';
         });
