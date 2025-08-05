@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v16</title>
+    <title>Office Battles - v17</title>
     <style>
         body {
             background-color: lightgrey;
@@ -78,7 +78,7 @@
     <div id="game-area">
         <div id="button-row">
             <button id="char-creator">Character Creator</button>
-            <button>Fight!</button>
+            <button id="fight">Fight!</button>
         </div>
     </div>
     <div id="modal">
@@ -185,6 +185,142 @@
 
             document.getElementById('modal').style.display = 'none';
         });
+
+        function Battle() {
+            let characters = [];
+            for (let key in window) {
+                if (key.startsWith('Character_')) {
+                    let char = window[key];
+                    if (char.element && char.element.parentNode) { // still in arena
+                        characters.push(char);
+                    }
+                }
+            }
+
+            if (characters.length < 2) {
+                alert("Need at least two characters to battle!");
+                return;
+            }
+
+            // Initialize HP
+            characters.forEach(char => {
+                char.hp = 50 + (char.strength * 3) + (char.dexterity * 2);
+            });
+
+            // Create log div
+            let logDiv = document.createElement('div');
+            logDiv.style.position = 'absolute';
+            logDiv.style.bottom = '0';
+            logDiv.style.left = '0';
+            logDiv.style.height = '100px';
+            logDiv.style.width = '100%';
+            logDiv.style.overflowY = 'auto';
+            logDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            logDiv.style.borderTop = '1px solid black';
+            logDiv.style.padding = '5px';
+            logDiv.style.boxSizing = 'border-box';
+            logDiv.style.fontSize = '12px';
+            document.getElementById('game-area').appendChild(logDiv);
+
+            function logMessage(msg) {
+                let p = document.createElement('p');
+                p.textContent = msg;
+                p.style.margin = '2px 0';
+                logDiv.appendChild(p);
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+
+            logMessage("Battle begins!");
+
+            const interval = setInterval(() => {
+                // Move characters randomly
+                characters.forEach(char => {
+                    if (char.hp > 0) {
+                        let left = parseFloat(char.element.style.left);
+                        let top = parseFloat(char.element.style.top);
+                        left += (Math.random() * 20 - 10);
+                        top += (Math.random() * 20 - 10);
+                        left = Math.max(0, Math.min(950, left));
+                        top = Math.max(60, Math.min(650, top));
+                        char.element.style.left = `${left}px`;
+                        char.element.style.top = `${top}px`;
+                    }
+                });
+
+                // Check for attacks
+                for (let i = 0; i < characters.length; i++) {
+                    let attacker = characters[i];
+                    if (attacker.hp <= 0) continue;
+
+                    for (let j = 0; j < characters.length; j++) {
+                        if (i === j) continue;
+                        let defender = characters[j];
+                        if (defender.hp <= 0) continue;
+
+                        let ax = parseFloat(attacker.element.style.left) + 25;
+                        let ay = parseFloat(attacker.element.style.top) + 25;
+                        let dx = parseFloat(defender.element.style.left) + 25;
+                        let dy = parseFloat(defender.element.style.top) + 25;
+                        let dist = Math.sqrt((ax - dx) ** 2 + (ay - dy) ** 2);
+
+                        if (dist < 60) {
+                            // Calculate hit chance
+                            let hitChance = 0.6 + (attacker.dexterity - defender.dexterity) / 50;
+                            hitChance = Math.max(0.1, Math.min(0.9, hitChance));
+
+                            if (Math.random() < hitChance) {
+                                let baseDamage = attacker.strength + (attacker.weapons * 0.5);
+                                let magicBonus = attacker.magic * Math.random();
+                                let damage = baseDamage + magicBonus;
+
+                                // Crit with luck
+                                if (Math.random() < (attacker.luck / 50)) {
+                                    damage *= 1.5;
+                                    logMessage(`${attacker.name} crits!`);
+                                }
+
+                                // Defender luck reduce damage
+                                if (Math.random() < (defender.luck / 50)) {
+                                    damage *= 0.7;
+                                    logMessage(`${defender.name} gets lucky and reduces damage!`);
+                                }
+
+                                damage = Math.round(damage);
+                                defender.hp -= damage;
+                                defender.hp = Math.max(0, defender.hp);
+
+                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp}`);
+
+                                if (defender.hp <= 0) {
+                                    logMessage(`${defender.name} is defeated!`);
+                                    defender.element.remove();
+                                }
+                            } else {
+                                logMessage(`${attacker.name} misses ${defender.name}`);
+                            }
+
+                            // Only one attack per turn per attacker
+                            break;
+                        }
+                    }
+                }
+
+                // Check for winner
+                let alive = characters.filter(c => c.hp > 0);
+                if (alive.length <= 1) {
+                    clearInterval(interval);
+                    if (alive.length === 1) {
+                        logMessage(`${alive[0].name} is the winner!`);
+                        alert(`${alive[0].name} is the winner!`);
+                    } else {
+                        logMessage("It's a draw!");
+                    }
+                    // Remove log after some time or keep
+                }
+            }, 800); // Attacks and moves every 0.8 seconds for moderate speed
+        }
+
+        document.getElementById('fight').addEventListener('click', Battle);
     </script>
 </body>
 </html>
