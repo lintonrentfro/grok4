@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v24</title>
+    <title>Office Battles - v25</title>
     <style>
         body {
             background-color: lightgrey;
@@ -438,8 +438,10 @@
                 attackCharacters.forEach(attacker => {
                     if (attacker.hp <= 0) return;
 
-                    for (let j = 0; j < characters.length; j++) {
-                        let defender = characters[j];
+                    // Shuffle potential defenders for this attacker
+                    let potentialDefenders = shuffle([...characters]);
+
+                    for (let defender of potentialDefenders) {
                         if (attacker === defender || defender.hp <= 0) continue;
 
                         let ax = parseFloat(attacker.element.style.left) + 25;
