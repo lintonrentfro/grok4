@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v30</title>
+    <title>Office Battles - v31</title>
     <style>
         body {
             background-color: lightgrey;
@@ -246,7 +246,7 @@
 
             // Initialize HP
             characters.forEach(char => {
-                char.hp = char.defend * 10;
+                char.hp = 3;
             });
 
             // Create log div
@@ -432,24 +432,24 @@
 
                         if (dist < 70) { // Increased range to 70
                             // Calculate hit chance
-                            let hitChance = 0.7 + 0.05 * attacker.attack - 0.05 * defender.defend;
+                            let hitChance = 0.05 * attacker.attack - 0.05 * defender.defend;
                             hitChance = Math.max(0.1, Math.min(0.9, hitChance));
                             let hitRoll = Math.random();
 
                             if (hitRoll < hitChance) {
-                                let damage = Math.round(attacker.attack * (0.8 + Math.random() * 0.4));
+                                let damage = 1;
 
                                 defender.hp -= damage;
                                 defender.hp = Math.max(0, defender.hp);
 
-                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.7 + 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)}, damage: round(${attacker.attack} * (0.8 + random*0.4)) = ${damage})`);
+                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
 
                                 if (defender.hp <= 0) {
                                     logMessage(`${defender.name} is defeated!`);
                                     defender.element.remove();
                                 }
                             } else {
-                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.7 + 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
+                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
                             }
 
                             attacked = true;
