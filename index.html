@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v20</title>
+    <title>Office Battles - v21</title>
     <style>
         body {
             background-color: lightgrey;
@@ -284,46 +284,83 @@
                             proposed_left = Math.max(0, Math.min(950, proposed_left));
                             proposed_top = Math.max(60, Math.min(650, proposed_top));
 
-                            // Calculate proposed dist to nearest
-                            let px = proposed_left + 25;
-                            let py = proposed_top + 25;
-                            let nx = parseFloat(nearest.element.style.left) + 25;
-                            let ny = parseFloat(nearest.element.style.top) + 25;
-                            let proposed_dist = Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
-
-                            if (minDist <= 10) {
-                                if (proposed_dist < 5) {
-                                    // Push away
-                                    let dirX = px - nx;
-                                    let dirY = py - ny;
-                                    let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
-                                    if (dir_dist > 0) {
-                                        let adjust = 5 - proposed_dist;
-                                        let adjustX = (dirX / dir_dist) * adjust;
-                                        let adjustY = (dirY / dir_dist) * adjust;
-                                        proposed_left += adjustX;
-                                        proposed_top += adjustY;
-                                    }
-                                } else if (proposed_dist > 20) {
-                                    // Pull closer
-                                    let dirX = nx - px;
-                                    let dirY = ny - py;
-                                    let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
-                                    if (dir_dist > 0) {
-                                        let adjust = proposed_dist - 20;
-                                        let adjustX = (dirX / dir_dist) * adjust;
-                                        let adjustY = (dirY / dir_dist) * adjust;
-                                        proposed_left += adjustX;
-                                        proposed_top += adjustY;
+                            // Check if proposed position overlaps with any other character's current position
+                            let wouldOverlap = false;
+                            characters.forEach(other => {
+                                if (other !== char && other.hp > 0) {
+                                    let o_left = parseFloat(other.element.style.left);
+                                    let o_top = parseFloat(other.element.style.top);
+                                    let p_right = proposed_left + 50;
+                                    let p_bottom = proposed_top + 50;
+                                    let o_right = o_left + 50;
+                                    let o_bottom = o_top + 50;
+                                    if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
+                                        wouldOverlap = true;
                                     }
                                 }
+                            });
+
+                            if (!wouldOverlap) {
+                                // Calculate proposed dist to nearest for close range adjustments
+                                let px = proposed_left + 25;
+                                let py = proposed_top + 25;
+                                let nx = parseFloat(nearest.element.style.left) + 25;
+                                let ny = parseFloat(nearest.element.style.top) + 25;
+                                let proposed_dist = Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
+
+                                if (minDist <= 10) {
+                                    if (proposed_dist < 5) {
+                                        // Push away
+                                        let dirX = px - nx;
+                                        let dirY = py - ny;
+                                        let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
+                                        if (dir_dist > 0) {
+                                            let adjust = 5 - proposed_dist;
+                                            let adjustX = (dirX / dir_dist) * adjust;
+                                            let adjustY = (dirY / dir_dist) * adjust;
+                                            proposed_left += adjustX;
+                                            proposed_top += adjustY;
+                                        }
+                                    } else if (proposed_dist > 20) {
+                                        // Pull closer
+                                        let dirX = nx - px;
+                                        let dirY = ny - py;
+                                        let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
+                                        if (dir_dist > 0) {
+                                            let adjust = proposed_dist - 20;
+                                            let adjustX = (dirX / dir_dist) * adjust;
+                                            let adjustY = (dirY / dir_dist) * adjust;
+                                            proposed_left += adjustX;
+                                            proposed_top += adjustY;
+                                        }
+                                    }
+                                }
+
+                                proposed_left = Math.max(0, Math.min(950, proposed_left));
+                                proposed_top = Math.max(60, Math.min(650, proposed_top));
+
+                                // Apply the move only if no overlap after adjustments
+                                let wouldOverlapAfterAdjust = false;
+                                characters.forEach(other => {
+                                    if (other !== char && other.hp > 0) {
+                                        let o_left = parseFloat(other.element.style.left);
+                                        let o_top = parseFloat(other.element.style.top);
+                                        let p_right = proposed_left + 50;
+                                        let p_bottom = proposed_top + 50;
+                                        let o_right = o_left + 50;
+                                        let o_bottom = o_top + 50;
+                                        if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
+                                            wouldOverlapAfterAdjust = true;
+                                        }
+                                    }
+                                });
+
+                                if (!wouldOverlapAfterAdjust) {
+                                    char.element.style.left = `${proposed_left}px`;
+                                    char.element.style.top = `${proposed_top}px`;
+                                }
                             }
-
-                            proposed_left = Math.max(0, Math.min(950, proposed_left));
-                            proposed_top = Math.max(60, Math.min(650, proposed_top));
-
-                            char.element.style.left = `${proposed_left}px`;
-                            char.element.style.top = `${proposed_top}px`;
+                            // If overlap, do nothing (no move)
                         }
                     }
                 });
