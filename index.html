@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v28</title>
+    <title>Office Battles - v29</title>
     <style>
         body {
             background-color: lightgrey;
@@ -86,16 +86,16 @@
         <form>
             <label for="name">Name: <input type="text" id="name"></label>
             <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0" readonly></label>
-            <label for="attack">Attack: <input type="number" id="attack" value="25" min="0" step="1"></label>
-            <label for="defend">Defend: <input type="number" id="defend" value="25" min="0" step="1"></label>
+            <label for="attack">Attack: <input type="number" id="attack" value="15" min="0" step="1"></label>
+            <label for="defend">Defend: <input type="number" id="defend" value="15" min="0" step="1"></label>
             <button type="button" id="enter-arena">Enter Arena</button>
         </form>
     </div>
     <script>
         document.getElementById('char-creator').addEventListener('click', function() {
             document.getElementById('name').value = '';
-            document.getElementById('attack').value = 25;
-            document.getElementById('defend').value = 25;
+            document.getElementById('attack').value = 15;
+            document.getElementById('defend').value = 15;
             updateRemaining();
             document.getElementById('modal').style.display = 'block';
         });
@@ -107,7 +107,7 @@
                 const value = parseInt(document.getElementById(stat).value) || 0;
                 sum += value;
             });
-            const remaining = 50 - sum;
+            const remaining = 30 - sum;
             document.getElementById('remaining-points').value = remaining;
             const enterBtn = document.getElementById('enter-arena');
             enterBtn.disabled = remaining < 0;
@@ -122,7 +122,7 @@
                     otherSum += parseInt(document.getElementById(stat).value) || 0;
                 }
             });
-            const max = 50 - otherSum;
+            const max = 30 - otherSum;
             const clamped = Math.max(0, Math.min(newValue, max));
             if (clamped !== newValue) {
                 input.value = clamped;
@@ -176,8 +176,8 @@
         });
 
         function generateRandomStats() {
-            const attack = Math.floor(Math.random() * 51);
-            const defend = 50 - attack;
+            const attack = Math.floor(Math.random() * 31);
+            const defend = 30 - attack;
             return [attack, defend];
         }
 
@@ -312,7 +312,7 @@
                                 let deltaY = ty - top;
                                 let dist = Math.sqrt(deltaX ** 2 + deltaY ** 2);
                                 if (dist > 0) {
-                                    let step = Math.random() * 10 + 5;
+                                    let step = Math.random() * 20 + 10;
                                     let moveX = (deltaX / dist) * step;
                                     let moveY = (deltaY / dist) * step;
                                     proposed_left += moveX;
@@ -320,8 +320,8 @@
                                 }
                             } else {
                                 // Move randomly
-                                let moveX = Math.random() * 20 - 10;
-                                let moveY = Math.random() * 20 - 10;
+                                let moveX = Math.random() * 40 - 20;
+                                let moveY = Math.random() * 40 - 20;
                                 proposed_left += moveX;
                                 proposed_top += moveY;
                             }
