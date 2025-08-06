@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v27</title>
+    <title>Office Battles - v28</title>
     <style>
         body {
             background-color: lightgrey;
@@ -86,27 +86,21 @@
         <form>
             <label for="name">Name: <input type="text" id="name"></label>
             <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0" readonly></label>
-            <label for="strength">Strength: <input type="number" id="strength" value="10" min="0" step="1"></label>
-            <label for="dexterity">Dexterity: <input type="number" id="dexterity" value="10" min="0" step="1"></label>
-            <label for="luck">Luck: <input type="number" id="luck" value="10" min="0" step="1"></label>
-            <label for="magic">Magic: <input type="number" id="magic" value="10" min="0" step="1"></label>
-            <label for="weapons">Weapons: <input type="number" id="weapons" value="10" min="0" step="1"></label>
+            <label for="attack">Attack: <input type="number" id="attack" value="25" min="0" step="1"></label>
+            <label for="defend">Defend: <input type="number" id="defend" value="25" min="0" step="1"></label>
             <button type="button" id="enter-arena">Enter Arena</button>
         </form>
     </div>
     <script>
         document.getElementById('char-creator').addEventListener('click', function() {
             document.getElementById('name').value = '';
-            document.getElementById('strength').value = 10;
-            document.getElementById('dexterity').value = 10;
-            document.getElementById('luck').value = 10;
-            document.getElementById('magic').value = 10;
-            document.getElementById('weapons').value = 10;
+            document.getElementById('attack').value = 25;
+            document.getElementById('defend').value = 25;
             updateRemaining();
             document.getElementById('modal').style.display = 'block';
         });
 
-        const stats = ['strength', 'dexterity', 'luck', 'magic', 'weapons'];
+        const stats = ['attack', 'defend'];
         function updateRemaining() {
             let sum = 0;
             stats.forEach(stat => {
@@ -147,19 +141,13 @@
                 alert("Please fill in the Name field.");
                 return;
             }
-            const strength = parseInt(document.getElementById('strength').value) || 0;
-            const dexterity = parseInt(document.getElementById('dexterity').value) || 0;
-            const luck = parseInt(document.getElementById('luck').value) || 0;
-            const magic = parseInt(document.getElementById('magic').value) || 0;
-            const weapons = parseInt(document.getElementById('weapons').value) || 0;
+            const attack = parseInt(document.getElementById('attack').value) || 0;
+            const defend = parseInt(document.getElementById('defend').value) || 0;
 
             const character = {
                 name: name,
-                strength: strength,
-                dexterity: dexterity,
-                luck: luck,
-                magic: magic,
-                weapons: weapons
+                attack: attack,
+                defend: defend
             };
 
             const charVarName = 'Character_' + name;
@@ -188,29 +176,20 @@
         });
 
         function generateRandomStats() {
-            let points = 50;
-            let statValues = [];
-            for (let i = 0; i < 4; i++) {
-                let val = Math.floor(Math.random() * (points + 1));
-                statValues.push(val);
-                points -= val;
-            }
-            statValues.push(points);
-            return statValues;
+            const attack = Math.floor(Math.random() * 51);
+            const defend = 50 - attack;
+            return [attack, defend];
         }
 
         function Test() {
             const names = ["Picard", "Data", "Worf", "Riker"];
             names.forEach(name => {
-                const [strength, dexterity, luck, magic, weapons] = generateRandomStats();
+                const [attack, defend] = generateRandomStats();
 
                 const character = {
                     name: name,
-                    strength: strength,
-                    dexterity: dexterity,
-                    luck: luck,
-                    magic: magic,
-                    weapons: weapons
+                    attack: attack,
+                    defend: defend
                 };
 
                 const charVarName = 'Character_' + name;
@@ -267,7 +246,7 @@
 
             // Initialize HP
             characters.forEach(char => {
-                char.hp = 50 + (char.strength * 3) + (char.dexterity * 2);
+                char.hp = char.defend * 10;
             });
 
             // Create log div
@@ -453,48 +432,24 @@
 
                         if (dist < 70) { // Increased range to 70
                             // Calculate hit chance
-                            let dexDiff = attacker.dexterity - defender.dexterity;
-                            let hitChanceDiff = dexDiff / 50;
-                            let hitChance = Math.max(0.1, Math.min(0.9, 0.6 + hitChanceDiff));
+                            let hitChance = 0.5 + 0.05 * attacker.attack - 0.05 * defender.defend;
+                            hitChance = Math.max(0.1, Math.min(0.9, hitChance));
                             let hitRoll = Math.random();
 
                             if (hitRoll < hitChance) {
-                                let baseDamage = attacker.strength + (attacker.weapons * 0.5);
-                                let magicRandom = Math.random();
-                                let magicBonus = attacker.magic * magicRandom;
-                                let damage = baseDamage + magicBonus;
+                                let damage = Math.round(attacker.attack * (0.8 + Math.random() * 0.4));
 
-                                let critChance = attacker.luck / 50;
-                                let critRoll = Math.random();
-                                let crit = false;
-                                if (critRoll < critChance) {
-                                    crit = true;
-                                    damage *= 1.5;
-                                    logMessage(`${attacker.name} crits! (critRoll: ${critRoll.toFixed(2)} < critChance: ${critChance.toFixed(2)}, multiplier: 1.5)`);
-                                }
-
-                                let luckReduceChance = defender.luck / 50;
-                                let luckReduceRoll = Math.random();
-                                let luckReduce = false;
-                                if (luckReduceRoll < luckReduceChance) {
-                                    luckReduce = true;
-                                    damage *= 0.7;
-                                    logMessage(`${defender.name} gets lucky and reduces damage! (luckReduceRoll: ${luckReduceRoll.toFixed(2)} < luckReduceChance: ${luckReduceChance.toFixed(2)}, multiplier: 0.7)`);
-                                }
-
-                                damage *= 1.5; // Increase overall damage by 50%
-                                damage = Math.round(damage);
                                 defender.hp -= damage;
                                 defender.hp = Math.max(0, defender.hp);
 
-                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)}, baseDamage: ${attacker.strength} + ${attacker.weapons} * 0.5 = ${baseDamage.toFixed(2)}, magicBonus: ${attacker.magic} * ${magicRandom.toFixed(2)} = ${magicBonus.toFixed(2)}, ${crit ? 'crit *1.5, ' : ''}${luckReduce ? 'luckReduce *0.7, ' : ''}overall *1.5, final rounded: ${damage})`);
+                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.5 + 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)}, damage: round(${attacker.attack} * (0.8 + random*0.4)) = ${damage})`);
 
                                 if (defender.hp <= 0) {
                                     logMessage(`${defender.name} is defeated!`);
                                     defender.element.remove();
                                 }
                             } else {
-                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)})`);
+                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.5 + 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
                             }
 
                             attacked = true;
