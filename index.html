@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v35</title>
+    <title>Office Battles - v36</title>
     <style>
         body {
             background-color: lightgrey;
@@ -56,28 +56,33 @@
         }
         .character {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 75px;
+            height: auto;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            color: black;
-            border: 2px solid black;
-            box-sizing: border-box;
-            overflow: hidden;
-            font-size: 20px;
         }
-        .character span {
-            width: 45px;
+        .character img {
+            width: 75px;
+            height: 75px;
+            border: 2px solid white;
+            box-sizing: border-box;
+        }
+        .character .name {
+            width: 75px;
             text-align: center;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
+            font-size: 20px;
         }
         .message {
             position: absolute;
             color: red;
             font-size: 14px;
             text-align: center;
-            width: 50px;
+            width: 75px;
             transition: opacity 0.5s;
         }
         .fade-out {
@@ -167,20 +172,24 @@
 
             const charDiv = document.createElement('div');
             charDiv.className = 'character';
-            const span = document.createElement('span');
-            span.textContent = name;
-            charDiv.appendChild(span);
-            charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
-            charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
+            const img = document.createElement('img');
+            img.src = 'https://lintonrentfro.github.io/grok4/images/space_marine.png';
+            charDiv.appendChild(img);
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'name';
+            nameSpan.textContent = name;
+            charDiv.appendChild(nameSpan);
+            charDiv.style.left = `${Math.random() * (1000 - 75)}px`;
+            charDiv.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
             document.getElementById('game-area').appendChild(charDiv);
             character.element = charDiv;
 
             // Adjust font size to fit
             let fontSize = 20;
-            span.style.fontSize = `${fontSize}px`;
-            while (span.scrollWidth > 45 && fontSize > 1) {
+            nameSpan.style.fontSize = `${fontSize}px`;
+            while (nameSpan.scrollWidth > 75 && fontSize > 1) {
                 fontSize--;
-                span.style.fontSize = `${fontSize}px`;
+                nameSpan.style.fontSize = `${fontSize}px`;
             }
 
             document.getElementById('modal').style.display = 'none';
@@ -217,20 +226,24 @@
 
                 const charDiv = document.createElement('div');
                 charDiv.className = 'character';
-                const span = document.createElement('span');
-                span.textContent = name;
-                charDiv.appendChild(span);
-                charDiv.style.left = `${Math.random() * (1000 - 50)}px`;
-                charDiv.style.top = `${60 + Math.random() * (700 - 60 - 50)}px`;
+                const img = document.createElement('img');
+                img.src = 'https://lintonrentfro.github.io/grok4/images/space_marine.png';
+                charDiv.appendChild(img);
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = name;
+                charDiv.appendChild(nameSpan);
+                charDiv.style.left = `${Math.random() * (1000 - 75)}px`;
+                charDiv.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
                 document.getElementById('game-area').appendChild(charDiv);
                 character.element = charDiv;
 
                 // Adjust font size to fit
                 let fontSize = 20;
-                span.style.fontSize = `${fontSize}px`;
-                while (span.scrollWidth > 45 && fontSize > 1) {
+                nameSpan.style.fontSize = `${fontSize}px`;
+                while (nameSpan.scrollWidth > 75 && fontSize > 1) {
                     fontSize--;
-                    span.style.fontSize = `${fontSize}px`;
+                    nameSpan.style.fontSize = `${fontSize}px`;
                 }
             });
         }
@@ -332,10 +345,10 @@
                         let minDist = Infinity;
                         characters.forEach(other => {
                             if (other !== char && other.hp > 0) {
-                                let ax = parseFloat(char.element.style.left) + 25;
-                                let ay = parseFloat(char.element.style.top) + 25;
-                                let ox = parseFloat(other.element.style.left) + 25;
-                                let oy = parseFloat(other.element.style.top) + 25;
+                                let ax = parseFloat(char.element.style.left) + 37.5;
+                                let ay = parseFloat(char.element.style.top) + 37.5;
+                                let ox = parseFloat(other.element.style.left) + 37.5;
+                                let oy = parseFloat(other.element.style.top) + 37.5;
                                 let dist = Math.sqrt((ax - ox) ** 2 + (ay - oy) ** 2);
                                 if (dist < minDist) {
                                     minDist = dist;
@@ -372,8 +385,8 @@
                                 proposed_top += moveY;
                             }
 
-                            proposed_left = Math.max(0, Math.min(950, proposed_left));
-                            proposed_top = Math.max(60, Math.min(650, proposed_top));
+                            proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
+                            proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
 
                             // Check if proposed position overlaps with any other character's current position
                             let wouldOverlap = false;
@@ -381,10 +394,10 @@
                                 if (other !== char && other.hp > 0) {
                                     let o_left = parseFloat(other.element.style.left);
                                     let o_top = parseFloat(other.element.style.top);
-                                    let p_right = proposed_left + 50;
-                                    let p_bottom = proposed_top + 50;
-                                    let o_right = o_left + 50;
-                                    let o_bottom = o_top + 50;
+                                    let p_right = proposed_left + 75;
+                                    let p_bottom = proposed_top + 75;
+                                    let o_right = o_left + 75;
+                                    let o_bottom = o_top + 75;
                                     if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
                                         wouldOverlap = true;
                                     }
@@ -393,10 +406,10 @@
 
                             if (!wouldOverlap) {
                                 // Calculate proposed dist to nearest for close range adjustments
-                                let px = proposed_left + 25;
-                                let py = proposed_top + 25;
-                                let nx = parseFloat(nearest.element.style.left) + 25;
-                                let ny = parseFloat(nearest.element.style.top) + 25;
+                                let px = proposed_left + 37.5;
+                                let py = proposed_top + 37.5;
+                                let nx = parseFloat(nearest.element.style.left) + 37.5;
+                                let ny = parseFloat(nearest.element.style.top) + 37.5;
                                 let proposed_dist = Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
 
                                 if (minDist <= 10) {
@@ -427,8 +440,8 @@
                                     }
                                 }
 
-                                proposed_left = Math.max(0, Math.min(950, proposed_left));
-                                proposed_top = Math.max(60, Math.min(650, proposed_top));
+                                proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
+                                proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
 
                                 // Apply the move only if no overlap after adjustments
                                 let wouldOverlapAfterAdjust = false;
@@ -436,10 +449,10 @@
                                     if (other !== char && other.hp > 0) {
                                         let o_left = parseFloat(other.element.style.left);
                                         let o_top = parseFloat(other.element.style.top);
-                                        let p_right = proposed_left + 50;
-                                        let p_bottom = proposed_top + 50;
-                                        let o_right = o_left + 50;
-                                        let o_bottom = o_top + 50;
+                                        let p_right = proposed_left + 75;
+                                        let p_bottom = proposed_top + 75;
+                                        let o_right = o_left + 75;
+                                        let o_bottom = o_top + 75;
                                         if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
                                             wouldOverlapAfterAdjust = true;
                                         }
@@ -470,14 +483,14 @@
                     for (let defender of potentialDefenders) {
                         if (attacker === defender || defender.hp <= 0) continue;
 
-                        let ax = parseFloat(attacker.element.style.left) + 25;
-                        let ay = parseFloat(attacker.element.style.top) + 25;
-                        let dx = parseFloat(defender.element.style.left) + 25;
-                        let dy = parseFloat(defender.element.style.top) + 25;
+                        let ax = parseFloat(attacker.element.style.left) + 37.5;
+                        let ay = parseFloat(attacker.element.style.top) + 37.5;
+                        let dx = parseFloat(defender.element.style.left) + 37.5;
+                        let dy = parseFloat(defender.element.style.top) + 37.5;
                         let cx_diff = Math.abs(ax - dx);
                         let cy_diff = Math.abs(ay - dy);
-                        let dx_edge = Math.max(0, cx_diff - 50);
-                        let dy_edge = Math.max(0, cy_diff - 50);
+                        let dx_edge = Math.max(0, cx_diff - 75);
+                        let dy_edge = Math.max(0, cy_diff - 75);
                         let edge_dist = Math.sqrt(dx_edge * dx_edge + dy_edge * dy_edge);
 
                         if (edge_dist <= 10) {
