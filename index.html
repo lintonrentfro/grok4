@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v38</title>
+    <title>Office Battles - v39</title>
     <style>
         body {
             background-color: lightgrey;
@@ -158,6 +158,30 @@
         });
         updateRemaining(); // Initial call
 
+        function getRandomBorderPosition() {
+            let left, top;
+            const width = 75;
+            const height = 75;
+            const arenaWidth = 1000;
+            const arenaHeight = 700;
+            const buttonHeight = 60;
+            const minDist = 50;
+            const maxDist = 100;
+
+            do {
+                left = Math.random() * (arenaWidth - width);
+                top = buttonHeight + Math.random() * (arenaHeight - buttonHeight - height);
+                const distLeft = left;
+                const distRight = arenaWidth - left - width;
+                const distTop = top - buttonHeight;
+                const distBottom = arenaHeight - top - height;
+                const minEdgeDist = Math.min(distLeft, distRight, distTop, distBottom);
+                if (minEdgeDist >= minDist && minEdgeDist <= maxDist) {
+                    return {left, top};
+                }
+            } while (true);
+        }
+
         document.getElementById('enter-arena').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
             if (!name) {
@@ -186,8 +210,9 @@
             nameSpan.className = 'name';
             nameSpan.textContent = name;
             charDiv.appendChild(nameSpan);
-            charDiv.style.left = `${Math.random() * (1000 - 75)}px`;
-            charDiv.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
+            const pos = getRandomBorderPosition();
+            charDiv.style.left = `${pos.left}px`;
+            charDiv.style.top = `${pos.top}px`;
             document.getElementById('game-area').appendChild(charDiv);
             character.element = charDiv;
 
@@ -197,6 +222,35 @@
             while (nameSpan.scrollWidth > 75 && fontSize > 1) {
                 fontSize--;
                 nameSpan.style.fontSize = `${fontSize}px`;
+            }
+
+            // Check for overlap with existing characters
+            let characters = [];
+            for (let key in window) {
+                if (key.startsWith('Character_')) {
+                    let char = window[key];
+                    if (char.element && char.element.parentNode) {
+                        characters.push(char);
+                    }
+                }
+            }
+            let overlap = true;
+            while (overlap) {
+                overlap = false;
+                characters.forEach(other => {
+                    if (other !== character && other.hp !== 0) { // hp not set yet
+                        let o_left = parseFloat(other.element.style.left);
+                        let o_top = parseFloat(other.element.style.top);
+                        let p_left = parseFloat(charDiv.style.left);
+                        let p_top = parseFloat(charDiv.style.top);
+                        if (!(p_left + 75 <= o_left || o_left + 75 <= p_left || p_top + 75 <= o_top || o_top + 75 <= p_top)) {
+                            overlap = true;
+                            const newPos = getRandomBorderPosition();
+                            charDiv.style.left = `${newPos.left}px`;
+                            charDiv.style.top = `${newPos.top}px`;
+                        }
+                    }
+                });
             }
 
             document.getElementById('modal').style.display = 'none';
@@ -218,6 +272,7 @@
             }
 
             const names = ["Rocko", "Jocko", "Mugsy", "Larry"];
+            let characters = [];
             names.forEach(name => {
                 const [attack, defend] = generateRandomStats();
 
@@ -240,10 +295,26 @@
                 nameSpan.className = 'name';
                 nameSpan.textContent = name;
                 charDiv.appendChild(nameSpan);
-                charDiv.style.left = `${Math.random() * (1000 - 75)}px`;
-                charDiv.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
-                document.getElementById('game-area').appendChild(charDiv);
-                character.element = charDiv;
+                let placed = false;
+                while (!placed) {
+                    const pos = getRandomBorderPosition();
+                    charDiv.style.left = `${pos.left}px`;
+                    charDiv.style.top = `${pos.top}px`;
+                    let overlap = false;
+                    characters.forEach(other => {
+                        let o_left = parseFloat(other.element.style.left);
+                        let o_top = parseFloat(other.element.style.top);
+                        if (!(pos.left + 75 <= o_left || o_left + 75 <= pos.left || pos.top + 75 <= o_top || o_top + 75 <= pos.top)) {
+                            overlap = true;
+                        }
+                    });
+                    if (!overlap) {
+                        document.getElementById('game-area').appendChild(charDiv);
+                        character.element = charDiv;
+                        characters.push(character);
+                        placed = true;
+                    }
+                }
 
                 // Adjust font size to fit
                 let fontSize = 20;
@@ -348,8 +419,8 @@
                 cubDiv.appendChild(img);
                 let placed = false;
                 while (!placed) {
-                    let proposed_left = Math.random() * (1000 - 75);
-                    let proposed_top = 60 + Math.random() * (700 - 60 - 75);
+                    let proposed_left = 200 + Math.random() * (725 - 200);
+                    let proposed_top = 260 + Math.random() * (425 - 260);
                     let wouldOverlap = false;
                     // Check overlap with characters
                     characters.forEach(char => {
@@ -377,25 +448,10 @@
                 }
             });
 
-            // Check for any overlaps and reposition if necessary
-            let overlap = true;
-            while (overlap) {
-                overlap = false;
-                characters.forEach(char => {
-                    let c_left = parseFloat(char.element.style.left);
-                    let c_top = parseFloat(char.element.style.top);
-                    cubicles.forEach(cub => {
-                        let o_left = parseFloat(cub.element.style.left);
-                        let o_top = parseFloat(cub.element.style.top);
-                        if (!(c_left + 75 <= o_left || o_left + 75 <= c_left || c_top + 75 <= o_top || o_top + 75 <= c_top)) {
-                            overlap = true;
-                            // Move the character to new random position
-                            char.element.style.left = `${Math.random() * (1000 - 75)}px`;
-                            char.element.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
-                        }
-                    });
-                });
-            }
+            // No need for additional overlap check since placed without overlap
+
+            const cos45 = Math.cos(Math.PI / 4);
+            const sin45 = Math.sin(Math.PI / 4);
 
             const interval = setInterval(() => {
                 characters.forEach(char => {
@@ -429,32 +485,33 @@
                         });
 
                         if (nearest) {
-                            let left = parseFloat(char.element.style.left);
+                            let left = parseFloat(char.element.style.top);
                             let top = parseFloat(char.element.style.top);
                             let proposed_left = left;
                             let proposed_top = top;
 
-                            if (minDist > 10) {
-                                // Move towards
-                                let tx = parseFloat(nearest.element.style.left);
-                                let ty = parseFloat(nearest.element.style.top);
-                                let deltaX = tx - left;
-                                let deltaY = ty - top;
-                                let dist = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-                                if (dist > 0) {
-                                    let step = Math.random() * 20 + 10;
-                                    let moveX = (deltaX / dist) * step;
-                                    let moveY = (deltaY / dist) * step;
-                                    proposed_left += moveX;
-                                    proposed_top += moveY;
-                                }
+                            let tx = parseFloat(nearest.element.style.left);
+                            let ty = parseFloat(nearest.element.style.top);
+                            let deltaX = tx - left;
+                            let deltaY = ty - top;
+                            let dist = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+                            let moveX, moveY;
+                            if (dist > 0) {
+                                let step = Math.random() * 20 + 10;
+                                moveX = (deltaX / dist) * step;
+                                moveY = (deltaY / dist) * step;
                             } else {
-                                // Move randomly
-                                let moveX = Math.random() * 40 - 20;
-                                let moveY = Math.random() * 40 - 20;
-                                proposed_left += moveX;
-                                proposed_top += moveY;
+                                moveX = 0;
+                                moveY = 0;
                             }
+
+                            if (minDist <= 10) {
+                                moveX = Math.random() * 40 - 20;
+                                moveY = Math.random() * 40 - 20;
+                            }
+
+                            proposed_left += moveX;
+                            proposed_top += moveY;
 
                             proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
                             proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
@@ -486,8 +543,90 @@
                                 }
                             });
 
+                            if (wouldOverlap) {
+                                // Try left rotation
+                                let moveX_left = moveX * cos45 - moveY * sin45;
+                                let moveY_left = moveX * sin45 + moveY * cos45;
+                                let proposed_left_left = left + moveX_left;
+                                let proposed_top_left = top + moveY_left;
+                                proposed_left_left = Math.max(0, Math.min(1000 - 75, proposed_left_left));
+                                proposed_top_left = Math.max(60, Math.min(700 - 60 - 75, proposed_top_left));
+
+                                let wouldOverlap_left = false;
+                                characters.forEach(other => {
+                                    if (other !== char && other.hp > 0) {
+                                        let o_left = parseFloat(other.element.style.left);
+                                        let o_top = parseFloat(other.element.style.top);
+                                        let p_right = proposed_left_left + 75;
+                                        let p_bottom = proposed_top_left + 75;
+                                        let o_right = o_left + 75;
+                                        let o_bottom = o_top + 75;
+                                        if (!(p_right <= o_left || o_right <= proposed_left_left || p_bottom <= o_top || o_bottom <= proposed_top_left)) {
+                                            wouldOverlap_left = true;
+                                        }
+                                    }
+                                });
+                                cubicles.forEach(cub => {
+                                    let o_left = parseFloat(cub.element.style.left);
+                                    let o_top = parseFloat(cub.element.style.top);
+                                    let p_right = proposed_left_left + 75;
+                                    let p_bottom = proposed_top_left + 75;
+                                    let o_right = o_left + 75;
+                                    let o_bottom = o_top + 75;
+                                    if (!(p_right <= o_left || o_right <= proposed_left_left || p_bottom <= o_top || o_bottom <= proposed_top_left)) {
+                                        wouldOverlap_left = true;
+                                    }
+                                });
+
+                                if (!wouldOverlap_left) {
+                                    proposed_left = proposed_left_left;
+                                    proposed_top = proposed_top_left;
+                                    wouldOverlap = false;
+                                } else {
+                                    // Try right rotation
+                                    let moveX_right = moveX * cos45 + moveY * sin45;
+                                    let moveY_right = -moveX * sin45 + moveY * cos45;
+                                    let proposed_left_right = left + moveX_right;
+                                    let proposed_top_right = top + moveY_right;
+                                    proposed_left_right = Math.max(0, Math.min(1000 - 75, proposed_left_right));
+                                    proposed_top_right = Math.max(60, Math.min(700 - 60 - 75, proposed_top_right));
+
+                                    let wouldOverlap_right = false;
+                                    characters.forEach(other => {
+                                        if (other !== char && other.hp > 0) {
+                                            let o_left = parseFloat(other.element.style.left);
+                                            let o_top = parseFloat(other.element.style.top);
+                                            let p_right = proposed_left_right + 75;
+                                            let p_bottom = proposed_top_right + 75;
+                                            let o_right = o_left + 75;
+                                            let o_bottom = o_top + 75;
+                                            if (!(p_right <= o_left || o_right <= proposed_left_right || p_bottom <= o_top || o_bottom <= proposed_top_right)) {
+                                                wouldOverlap_right = true;
+                                            }
+                                        }
+                                    });
+                                    cubicles.forEach(cub => {
+                                        let o_left = parseFloat(cub.element.style.left);
+                                        let o_top = parseFloat(cub.element.style.top);
+                                        let p_right = proposed_left_right + 75;
+                                        let p_bottom = proposed_top_right + 75;
+                                        let o_right = o_left + 75;
+                                        let o_bottom = o_top + 75;
+                                        if (!(p_right <= o_left || o_right <= proposed_left_right || p_bottom <= o_top || o_bottom <= proposed_top_right)) {
+                                            wouldOverlap_right = true;
+                                        }
+                                    });
+
+                                    if (!wouldOverlap_right) {
+                                        proposed_left = proposed_left_right;
+                                        proposed_top = proposed_top_right;
+                                        wouldOverlap = false;
+                                    }
+                                }
+                            }
+
                             if (!wouldOverlap) {
-                                // Calculate proposed dist to nearest for close range adjustments
+                                // Apply close range adjustment if applicable
                                 let px = proposed_left + 37.5;
                                 let py = proposed_top + 37.5;
                                 let nx = parseFloat(nearest.element.style.left) + 37.5;
@@ -525,8 +664,8 @@
                                 proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
                                 proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
 
-                                // Apply the move only if no overlap after adjustments
-                                let wouldOverlapAfterAdjust = false;
+                                // Final check after adjustment
+                                let finalOverlap = false;
                                 characters.forEach(other => {
                                     if (other !== char && other.hp > 0) {
                                         let o_left = parseFloat(other.element.style.left);
@@ -536,7 +675,7 @@
                                         let o_right = o_left + 75;
                                         let o_bottom = o_top + 75;
                                         if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
-                                            wouldOverlapAfterAdjust = true;
+                                            finalOverlap = true;
                                         }
                                     }
                                 });
@@ -548,11 +687,11 @@
                                     let o_right = o_left + 75;
                                     let o_bottom = o_top + 75;
                                     if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
-                                        wouldOverlapAfterAdjust = true;
+                                        finalOverlap = true;
                                     }
                                 });
 
-                                if (!wouldOverlapAfterAdjust) {
+                                if (!finalOverlap) {
                                     char.element.style.left = `${proposed_left}px`;
                                     char.element.style.top = `${proposed_top}px`;
                                 }
