@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v33</title>
+    <title>Office Battles - v34</title>
     <style>
         body {
             background-color: lightgrey;
@@ -193,6 +193,14 @@
         }
 
         function Test() {
+            // Remove all existing characters
+            document.querySelectorAll('.character').forEach(el => el.remove());
+            for (let key in window) {
+                if (key.startsWith('Character_')) {
+                    delete window[key];
+                }
+            }
+
             const names = ["Picard", "Data", "Worf", "Riker"];
             names.forEach(name => {
                 const [attack, defend] = generateRandomStats();
@@ -472,7 +480,7 @@
                         let dy_edge = Math.max(0, cy_diff - 50);
                         let edge_dist = Math.sqrt(dx_edge * dx_edge + dy_edge * dy_edge);
 
-                        if (edge_dist <= 5) {
+                        if (edge_dist <= 10) {
                             // Calculate hit chance
                             let hitChance = 0.05 * attacker.attack - 0.05 * defender.defend;
                             hitChance = Math.max(0.1, Math.min(0.9, hitChance));
@@ -516,6 +524,7 @@
                     if (alive.length === 1) {
                         logMessage(`${alive[0].name} is the winner!`);
                         alert(`${alive[0].name} is the winner!`);
+                        showMessage(alive[0], "Winner!");
                     } else {
                         logMessage("It's a draw!");
                     }
