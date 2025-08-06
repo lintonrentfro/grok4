@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v40</title>
+    <title>Office Battles - v41</title>
     <style>
         body {
             background-color: lightgrey;
@@ -111,6 +111,21 @@
             <label for="remaining-points">Remaining Points: <input type="number" id="remaining-points" value="0" readonly></label>
             <label for="attack">Attack: <input type="number" id="attack" value="15" min="0" step="1"></label>
             <label for="defend">Defend: <input type="number" id="defend" value="15" min="0" step="1"></label>
+            <label for="melee">Melee: 
+                <select id="melee">
+                    <option>Knife</option>
+                </select>
+            </label>
+            <label for="ranged">Ranged: 
+                <select id="ranged">
+                    <option>Pistol</option>
+                </select>
+            </label>
+            <label for="consumable">Consumable: 
+                <select id="consumable">
+                    <option>Grenade</option>
+                </select>
+            </label>
             <button type="button" id="enter-arena">Enter Arena</button>
         </form>
     </div>
@@ -119,6 +134,9 @@
             document.getElementById('name').value = '';
             document.getElementById('attack').value = 15;
             document.getElementById('defend').value = 15;
+            document.getElementById('melee').value = 'Knife';
+            document.getElementById('ranged').value = 'Pistol';
+            document.getElementById('consumable').value = 'Grenade';
             updateRemaining();
             document.getElementById('modal').style.display = 'block';
         });
@@ -158,30 +176,6 @@
         });
         updateRemaining(); // Initial call
 
-        function getRandomBorderPosition() {
-            let left, top;
-            const width = 75;
-            const height = 75;
-            const arenaWidth = 1000;
-            const arenaHeight = 700;
-            const buttonHeight = 60;
-            const minDist = 50;
-            const maxDist = 100;
-
-            do {
-                left = Math.random() * (arenaWidth - width);
-                top = buttonHeight + Math.random() * (arenaHeight - buttonHeight - height);
-                const distLeft = left;
-                const distRight = arenaWidth - left - width;
-                const distTop = top - buttonHeight;
-                const distBottom = arenaHeight - top - height;
-                const minEdgeDist = Math.min(distLeft, distRight, distTop, distBottom);
-                if (minEdgeDist >= minDist && minEdgeDist <= maxDist) {
-                    return {left, top};
-                }
-            } while (true);
-        }
-
         document.getElementById('enter-arena').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
             if (!name) {
@@ -190,11 +184,17 @@
             }
             const attack = parseInt(document.getElementById('attack').value) || 0;
             const defend = parseInt(document.getElementById('defend').value) || 0;
+            const melee = document.getElementById('melee').value;
+            const ranged = document.getElementById('ranged').value;
+            const consumable = document.getElementById('consumable').value;
 
             const character = {
                 name: name,
                 attack: attack,
-                defend: defend
+                defend: defend,
+                melee: melee,
+                ranged: ranged,
+                consumable: consumable
             };
 
             const charVarName = 'Character_' + name;
@@ -279,7 +279,10 @@
                 const character = {
                     name: name,
                     attack: attack,
-                    defend: defend
+                    defend: defend,
+                    melee: 'Knife',
+                    ranged: 'Pistol',
+                    consumable: 'Grenade'
                 };
 
                 const charVarName = 'Character_' + name;
@@ -771,6 +774,7 @@
                     clearInterval(interval);
                     if (alive.length === 1) {
                         logMessage(`${alive[0].name} is the winner!`);
+                        console.log(JSON.stringify(alive[0]));
                         showMessage(alive[0], "Winner!");
                     } else {
                         logMessage("It's a draw!");
