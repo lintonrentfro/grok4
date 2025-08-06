@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v36</title>
+    <title>Office Battles - v37</title>
     <style>
         body {
             background-color: lightgrey;
@@ -210,7 +210,7 @@
                 }
             }
 
-            const names = ["Picard", "Data", "Worf", "Riker"];
+            const names = ["Rocko", "Jocko", "Mugsy", "Larry"];
             names.forEach(name => {
                 const [attack, defend] = generateRandomStats();
 
@@ -512,6 +512,9 @@
 
                                 if (defender.hp <= 0) {
                                     logMessage(`${defender.name} is defeated!`);
+                                    if (defender.messageElement) {
+                                        defender.messageElement.remove();
+                                    }
                                     defender.element.remove();
                                 }
                             } else {
