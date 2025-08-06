@@ -346,45 +346,47 @@
 
                         if (dist < 60) {
                             // Calculate hit chance
-                            let hitChance = 0.6 + (attacker.dexterity - defender.dexterity) / 50;
-                            hitChance = Math.max(0.1, Math.min(0.9, hitChance));
+                            let dexDiff = attacker.dexterity - defender.dexterity;
+                            let hitChanceDiff = dexDiff / 50;
+                            let hitChance = Math.max(0.1, Math.min(0.9, 0.6 + hitChanceDiff));
                             let hitRoll = Math.random();
 
                             if (hitRoll < hitChance) {
                                 let baseDamage = attacker.strength + (attacker.weapons * 0.5);
-                                let magicBonus = attacker.magic * Math.random();
+                                let magicRandom = Math.random();
+                                let magicBonus = attacker.magic * magicRandom;
                                 let damage = baseDamage + magicBonus;
 
-                                let critRoll = Math.random();
                                 let critChance = attacker.luck / 50;
+                                let critRoll = Math.random();
                                 let crit = false;
                                 if (critRoll < critChance) {
                                     crit = true;
                                     damage *= 1.5;
-                                    logMessage(`${attacker.name} crits! (critRoll: ${critRoll.toFixed(2)} < ${critChance.toFixed(2)}, multiplier: 1.5)`);
+                                    logMessage(`${attacker.name} crits! (critRoll: ${critRoll.toFixed(2)} < critChance: ${critChance.toFixed(2)}, multiplier: 1.5)`);
                                 }
 
-                                let luckReduceRoll = Math.random();
                                 let luckReduceChance = defender.luck / 50;
+                                let luckReduceRoll = Math.random();
                                 let luckReduce = false;
                                 if (luckReduceRoll < luckReduceChance) {
                                     luckReduce = true;
                                     damage *= 0.7;
-                                    logMessage(`${defender.name} gets lucky and reduces damage! (luckReduceRoll: ${luckReduceRoll.toFixed(2)} < ${luckReduceChance.toFixed(2)}, multiplier: 0.7)`);
+                                    logMessage(`${defender.name} gets lucky and reduces damage! (luckReduceRoll: ${luckReduceRoll.toFixed(2)} < luckReduceChance: ${luckReduceChance.toFixed(2)}, multiplier: 0.7)`);
                                 }
 
                                 damage = Math.round(damage);
                                 defender.hp -= damage;
                                 defender.hp = Math.max(0, defender.hp);
 
-                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < ${hitChance.toFixed(2)}, baseDamage: ${attacker.strength} + ${attacker.weapons}*0.5 = ${baseDamage.toFixed(2)}, magicBonus: ${ (attacker.magic * (critRoll + luckReduceRoll)/2).toFixed(2) wait no, actually magicBonus: ${magicBonus.toFixed(2)}, ${crit ? 'crit *1.5, ' : ''}${luckReduce ? 'luckReduce *0.7, ' : ''}final rounded: ${damage})`);
+                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)}, baseDamage: ${attacker.strength} + ${attacker.weapons} * 0.5 = ${baseDamage.toFixed(2)}, magicBonus: ${attacker.magic} * ${magicRandom.toFixed(2)} = ${magicBonus.toFixed(2)}, ${crit ? 'crit *1.5, ' : ''}${luckReduce ? 'luckReduce *0.7, ' : ''}final rounded: ${damage})`);
 
                                 if (defender.hp <= 0) {
                                     logMessage(`${defender.name} is defeated!`);
                                     defender.element.remove();
                                 }
                             } else {
-                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= ${hitChance.toFixed(2)})`);
+                                logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)})`);
                             }
 
                             // Only one attack per turn per attacker
