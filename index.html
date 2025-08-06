@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v37</title>
+    <title>Office Battles - v38</title>
     <style>
         body {
             background-color: lightgrey;
@@ -76,6 +76,13 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             font-size: 20px;
+        }
+        .cubicle {
+            position: absolute;
+        }
+        .cubicle img {
+            width: 75px;
+            height: 75px;
         }
         .message {
             position: absolute;
@@ -281,6 +288,7 @@
         }
 
         function Battle() {
+            document.querySelectorAll('.cubicle').forEach(el => el.remove());
             let characters = [];
             for (let key in window) {
                 if (key.startsWith('Character_')) {
@@ -325,6 +333,69 @@
             }
 
             logMessage("Battle begins!");
+
+            const cubicleUrls = [
+                'https://lintonrentfro.github.io/grok4/images/cubicles_1.png',
+                'https://lintonrentfro.github.io/grok4/images/cubicles_2.png',
+                'https://lintonrentfro.github.io/grok4/images/cubicles_3.png'
+            ];
+            const cubicles = [];
+            cubicleUrls.forEach(url => {
+                const cubDiv = document.createElement('div');
+                cubDiv.className = 'cubicle';
+                const img = document.createElement('img');
+                img.src = url;
+                cubDiv.appendChild(img);
+                let placed = false;
+                while (!placed) {
+                    let proposed_left = Math.random() * (1000 - 75);
+                    let proposed_top = 60 + Math.random() * (700 - 60 - 75);
+                    let wouldOverlap = false;
+                    // Check overlap with characters
+                    characters.forEach(char => {
+                        let c_left = parseFloat(char.element.style.left);
+                        let c_top = parseFloat(char.element.style.top);
+                        if (!(proposed_left + 75 <= c_left || c_left + 75 <= proposed_left || proposed_top + 75 <= c_top || c_top + 75 <= proposed_top)) {
+                            wouldOverlap = true;
+                        }
+                    });
+                    // Check overlap with other cubicles
+                    cubicles.forEach(cub => {
+                        let o_left = parseFloat(cub.element.style.left);
+                        let o_top = parseFloat(cub.element.style.top);
+                        if (!(proposed_left + 75 <= o_left || o_left + 75 <= proposed_left || proposed_top + 75 <= o_top || o_top + 75 <= proposed_top)) {
+                            wouldOverlap = true;
+                        }
+                    });
+                    if (!wouldOverlap) {
+                        cubDiv.style.left = `${proposed_left}px`;
+                        cubDiv.style.top = `${proposed_top}px`;
+                        document.getElementById('game-area').appendChild(cubDiv);
+                        cubicles.push({element: cubDiv});
+                        placed = true;
+                    }
+                }
+            });
+
+            // Check for any overlaps and reposition if necessary
+            let overlap = true;
+            while (overlap) {
+                overlap = false;
+                characters.forEach(char => {
+                    let c_left = parseFloat(char.element.style.left);
+                    let c_top = parseFloat(char.element.style.top);
+                    cubicles.forEach(cub => {
+                        let o_left = parseFloat(cub.element.style.left);
+                        let o_top = parseFloat(cub.element.style.top);
+                        if (!(c_left + 75 <= o_left || o_left + 75 <= c_left || c_top + 75 <= o_top || o_top + 75 <= c_top)) {
+                            overlap = true;
+                            // Move the character to new random position
+                            char.element.style.left = `${Math.random() * (1000 - 75)}px`;
+                            char.element.style.top = `${60 + Math.random() * (700 - 60 - 75)}px`;
+                        }
+                    });
+                });
+            }
 
             const interval = setInterval(() => {
                 characters.forEach(char => {
@@ -388,7 +459,7 @@
                             proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
                             proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
 
-                            // Check if proposed position overlaps with any other character's current position
+                            // Check if proposed position overlaps with any other character's current position or cubicles
                             let wouldOverlap = false;
                             characters.forEach(other => {
                                 if (other !== char && other.hp > 0) {
@@ -401,6 +472,17 @@
                                     if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
                                         wouldOverlap = true;
                                     }
+                                }
+                            });
+                            cubicles.forEach(cub => {
+                                let o_left = parseFloat(cub.element.style.left);
+                                let o_top = parseFloat(cub.element.style.top);
+                                let p_right = proposed_left + 75;
+                                let p_bottom = proposed_top + 75;
+                                let o_right = o_left + 75;
+                                let o_bottom = o_top + 75;
+                                if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
+                                    wouldOverlap = true;
                                 }
                             });
 
@@ -456,6 +538,17 @@
                                         if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
                                             wouldOverlapAfterAdjust = true;
                                         }
+                                    }
+                                });
+                                cubicles.forEach(cub => {
+                                    let o_left = parseFloat(cub.element.style.left);
+                                    let o_top = parseFloat(cub.element.style.top);
+                                    let p_right = proposed_left + 75;
+                                    let p_bottom = proposed_top + 75;
+                                    let o_right = o_left + 75;
+                                    let o_bottom = o_top + 75;
+                                    if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
+                                        wouldOverlapAfterAdjust = true;
                                     }
                                 });
 
