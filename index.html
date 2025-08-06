@@ -72,6 +72,17 @@
             text-align: center;
             white-space: nowrap;
         }
+        .message {
+            position: absolute;
+            color: red;
+            font-size: 14px;
+            text-align: center;
+            width: 50px;
+            transition: opacity 0.5s;
+        }
+        .fade-out {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -228,6 +239,26 @@
             return array;
         }
 
+        function showMessage(char, text) {
+            if (char.messageElement) {
+                char.messageElement.classList.add('fade-out');
+                setTimeout(() => {
+                    if (char.messageElement) {
+                        char.messageElement.remove();
+                        delete char.messageElement;
+                    }
+                }, 500);
+            }
+
+            const msg = document.createElement('div');
+            msg.className = 'message';
+            msg.textContent = text;
+            msg.style.left = char.element.style.left;
+            msg.style.top = `${parseFloat(char.element.style.top) - 20}px`;
+            document.getElementById('game-area').appendChild(msg);
+            char.messageElement = msg;
+        }
+
         function Battle() {
             let characters = [];
             for (let key in window) {
@@ -275,6 +306,13 @@
             logMessage("Battle begins!");
 
             const interval = setInterval(() => {
+                characters.forEach(char => {
+                    if (char.messageElement) {
+                        char.messageElement.remove();
+                        delete char.messageElement;
+                    }
+                });
+
                 // Shuffle for movement
                 let movedCharacters = shuffle([...characters]);
 
@@ -442,6 +480,9 @@
                                 defender.hp -= damage;
                                 defender.hp = Math.max(0, defender.hp);
 
+                                showMessage(attacker, "Hit!");
+                                showMessage(defender, "-1 hp");
+
                                 logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
 
                                 if (defender.hp <= 0) {
@@ -449,6 +490,7 @@
                                     defender.element.remove();
                                 }
                             } else {
+                                showMessage(attacker, "Missed!");
                                 logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.05*${attacker.attack} - 0.05*${defender.defend} = ${hitChance.toFixed(2)})`);
                             }
 
