@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v31</title>
+    <title>Office Battles - v33</title>
     <style>
         body {
             background-color: lightgrey;
@@ -466,9 +466,13 @@
                         let ay = parseFloat(attacker.element.style.top) + 25;
                         let dx = parseFloat(defender.element.style.left) + 25;
                         let dy = parseFloat(defender.element.style.top) + 25;
-                        let dist = Math.sqrt((ax - dx) ** 2 + (ay - dy) ** 2);
+                        let cx_diff = Math.abs(ax - dx);
+                        let cy_diff = Math.abs(ay - dy);
+                        let dx_edge = Math.max(0, cx_diff - 50);
+                        let dy_edge = Math.max(0, cy_diff - 50);
+                        let edge_dist = Math.sqrt(dx_edge * dx_edge + dy_edge * dy_edge);
 
-                        if (dist < 70) { // Increased range to 70
+                        if (edge_dist <= 5) {
                             // Calculate hit chance
                             let hitChance = 0.05 * attacker.attack - 0.05 * defender.defend;
                             hitChance = Math.max(0.1, Math.min(0.9, hitChance));
