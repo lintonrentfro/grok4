@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v41</title>
+    <title>Office Battles - v43</title>
     <style>
         body {
             background-color: lightgrey;
@@ -462,9 +462,7 @@
                 img.src = url;
                 cubDiv.appendChild(img);
                 let placed = false;
-                let attempts = 0;
-                while (!placed && attempts < 100) {
-                    attempts++;
+                while (!placed) {
                     let proposed_left = 200 + Math.random() * (725 - 200);
                     let proposed_top = 260 + Math.random() * (425 - 260);
                     let wouldOverlap = false;
@@ -491,13 +489,6 @@
                         cubicles.push({element: cubDiv});
                         placed = true;
                     }
-                }
-                if (!placed) {
-                    console.log("Could not find non-overlap position for cubicle, placing anyway");
-                    cubDiv.style.left = `${proposed_left}px`;
-                    cubDiv.style.top = `${proposed_top}px`;
-                    document.getElementById('game-area').appendChild(cubDiv);
-                    cubicles.push({element: cubDiv});
                 }
             });
 
