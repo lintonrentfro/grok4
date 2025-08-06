@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v23</title>
+    <title>Office Battles - v24</title>
     <style>
         body {
             background-color: lightgrey;
@@ -239,6 +239,16 @@
 
         document.getElementById('test').addEventListener('click', Test);
 
+        function shuffle(array) {
+            let currentIndex = array.length;
+            while (currentIndex != 0) {
+                let randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
         function Battle() {
             let characters = [];
             for (let key in window) {
@@ -286,8 +296,11 @@
             logMessage("Battle begins!");
 
             const interval = setInterval(() => {
-                // Move characters towards nearest opponent or randomly when close
-                characters.forEach(char => {
+                // Shuffle for movement
+                let movedCharacters = shuffle([...characters]);
+
+                // Move characters
+                movedCharacters.forEach(char => {
                     if (char.hp > 0) {
                         // Find nearest alive opponent
                         let nearest = null;
@@ -418,15 +431,16 @@
                     }
                 });
 
+                // Shuffle for attacks
+                let attackCharacters = shuffle([...characters]);
+
                 // Check for attacks
-                for (let i = 0; i < characters.length; i++) {
-                    let attacker = characters[i];
-                    if (attacker.hp <= 0) continue;
+                attackCharacters.forEach(attacker => {
+                    if (attacker.hp <= 0) return;
 
                     for (let j = 0; j < characters.length; j++) {
-                        if (i === j) continue;
                         let defender = characters[j];
-                        if (defender.hp <= 0) continue;
+                        if (attacker === defender || defender.hp <= 0) continue;
 
                         let ax = parseFloat(attacker.element.style.left) + 25;
                         let ay = parseFloat(attacker.element.style.top) + 25;
@@ -465,11 +479,12 @@
                                     logMessage(`${defender.name} gets lucky and reduces damage! (luckReduceRoll: ${luckReduceRoll.toFixed(2)} < luckReduceChance: ${luckReduceChance.toFixed(2)}, multiplier: 0.7)`);
                                 }
 
+                                damage *= 1.5; // Increase overall damage by 50%
                                 damage = Math.round(damage);
                                 defender.hp -= damage;
                                 defender.hp = Math.max(0, defender.hp);
 
-                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)}, baseDamage: ${attacker.strength} + ${attacker.weapons} * 0.5 = ${baseDamage.toFixed(2)}, magicBonus: ${attacker.magic} * ${magicRandom.toFixed(2)} = ${magicBonus.toFixed(2)}, ${crit ? 'crit *1.5, ' : ''}${luckReduce ? 'luckReduce *0.7, ' : ''}final rounded: ${damage})`);
+                                logMessage(`${attacker.name} attacks ${defender.name} for ${damage} damage. ${defender.name} HP: ${defender.hp} (hitRoll: ${hitRoll.toFixed(2)} < hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)}, baseDamage: ${attacker.strength} + ${attacker.weapons} * 0.5 = ${baseDamage.toFixed(2)}, magicBonus: ${attacker.magic} * ${magicRandom.toFixed(2)} = ${magicBonus.toFixed(2)}, ${crit ? 'crit *1.5, ' : ''}${luckReduce ? 'luckReduce *0.7, ' : ''}overall *1.5, final rounded: ${damage})`);
 
                                 if (defender.hp <= 0) {
                                     logMessage(`${defender.name} is defeated!`);
@@ -480,10 +495,10 @@
                             }
 
                             // Only one attack per turn per attacker
-                            break;
+                            return;
                         }
                     }
-                }
+                });
 
                 // Check for winner
                 let alive = characters.filter(c => c.hp > 0);
