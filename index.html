@@ -134,9 +134,6 @@
             document.getElementById('name').value = '';
             document.getElementById('attack').value = 15;
             document.getElementById('defend').value = 15;
-            document.getElementById('melee').value = 'Knife';
-            document.getElementById('ranged').value = 'Pistol';
-            document.getElementById('consumable').value = 'Grenade';
             updateRemaining();
             document.getElementById('modal').style.display = 'block';
         });
@@ -176,6 +173,39 @@
         });
         updateRemaining(); // Initial call
 
+        function getRandomBorderPosition() {
+            const width = 75;
+            const height = 75;
+            const arenaWidth = 1000;
+            const arenaHeight = 700;
+            const buttonHeight = 60;
+            const minDist = 50;
+            const maxDist = 100;
+
+            const side = Math.floor(Math.random() * 4); // 0: left, 1: right, 2: top, 3: bottom
+
+            let left, top;
+            switch (side) {
+                case 0: // left
+                    left = Math.random() * (maxDist - minDist) + minDist;
+                    top = buttonHeight + Math.random() * (arenaHeight - buttonHeight - height);
+                    break;
+                case 1: // right
+                    left = arenaWidth - width - (Math.random() * (maxDist - minDist) + minDist);
+                    top = buttonHeight + Math.random() * (arenaHeight - buttonHeight - height);
+                    break;
+                case 2: // top
+                    left = Math.random() * (arenaWidth - width);
+                    top = buttonHeight + Math.random() * (maxDist - minDist) + minDist;
+                    break;
+                case 3: // bottom
+                    left = Math.random() * (arenaWidth - width);
+                    top = arenaHeight - height - (Math.random() * (maxDist - minDist) + minDist);
+                    break;
+            }
+            return {left, top};
+        }
+
         document.getElementById('enter-arena').addEventListener('click', function() {
             const name = document.getElementById('name').value.trim();
             if (!name) {
@@ -210,11 +240,43 @@
             nameSpan.className = 'name';
             nameSpan.textContent = name;
             charDiv.appendChild(nameSpan);
-            const pos = getRandomBorderPosition();
-            charDiv.style.left = `${pos.left}px`;
-            charDiv.style.top = `${pos.top}px`;
-            document.getElementById('game-area').appendChild(charDiv);
-            character.element = charDiv;
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 100) {
+                attempts++;
+                const pos = getRandomBorderPosition();
+                charDiv.style.left = `${pos.left}px`;
+                charDiv.style.top = `${pos.top}px`;
+                let overlap = false;
+                let characters = [];
+                for (let key in window) {
+                    if (key.startsWith('Character_')) {
+                        let char = window[key];
+                        if (char.element && char.element.parentNode) {
+                            characters.push(char);
+                        }
+                    }
+                }
+                characters.forEach(other => {
+                    if (other !== character) {
+                        let o_left = parseFloat(other.element.style.left);
+                        let o_top = parseFloat(other.element.style.top);
+                        if (!(pos.left + 75 <= o_left || o_left + 75 <= pos.left || pos.top + 75 <= o_top || o_top + 75 <= pos.top)) {
+                            overlap = true;
+                        }
+                    }
+                });
+                if (!overlap) {
+                    document.getElementById('game-area').appendChild(charDiv);
+                    character.element = charDiv;
+                    placed = true;
+                }
+            }
+            if (!placed) {
+                console.log("Could not find non-overlap position for " + name + ", placing anyway");
+                document.getElementById('game-area').appendChild(charDiv);
+                character.element = charDiv;
+            }
 
             // Adjust font size to fit
             let fontSize = 20;
@@ -222,35 +284,6 @@
             while (nameSpan.scrollWidth > 75 && fontSize > 1) {
                 fontSize--;
                 nameSpan.style.fontSize = `${fontSize}px`;
-            }
-
-            // Check for overlap with existing characters
-            let characters = [];
-            for (let key in window) {
-                if (key.startsWith('Character_')) {
-                    let char = window[key];
-                    if (char.element && char.element.parentNode) {
-                        characters.push(char);
-                    }
-                }
-            }
-            let overlap = true;
-            while (overlap) {
-                overlap = false;
-                characters.forEach(other => {
-                    if (other !== character && other.hp !== 0) { // hp not set yet
-                        let o_left = parseFloat(other.element.style.left);
-                        let o_top = parseFloat(other.element.style.top);
-                        let p_left = parseFloat(charDiv.style.left);
-                        let p_top = parseFloat(charDiv.style.top);
-                        if (!(p_left + 75 <= o_left || o_left + 75 <= p_left || p_top + 75 <= o_top || o_top + 75 <= p_top)) {
-                            overlap = true;
-                            const newPos = getRandomBorderPosition();
-                            charDiv.style.left = `${newPos.left}px`;
-                            charDiv.style.top = `${newPos.top}px`;
-                        }
-                    }
-                });
             }
 
             document.getElementById('modal').style.display = 'none';
@@ -299,7 +332,9 @@
                 nameSpan.textContent = name;
                 charDiv.appendChild(nameSpan);
                 let placed = false;
-                while (!placed) {
+                let attempts = 0;
+                while (!placed && attempts < 100) {
+                    attempts++;
                     const pos = getRandomBorderPosition();
                     charDiv.style.left = `${pos.left}px`;
                     charDiv.style.top = `${pos.top}px`;
@@ -317,6 +352,12 @@
                         characters.push(character);
                         placed = true;
                     }
+                }
+                if (!placed) {
+                    console.log("Could not find non-overlap position for " + name + ", placing anyway");
+                    document.getElementById('game-area').appendChild(charDiv);
+                    character.element = charDiv;
+                    characters.push(character);
                 }
 
                 // Adjust font size to fit
@@ -421,7 +462,9 @@
                 img.src = url;
                 cubDiv.appendChild(img);
                 let placed = false;
-                while (!placed) {
+                let attempts = 0;
+                while (!placed && attempts < 100) {
+                    attempts++;
                     let proposed_left = 200 + Math.random() * (725 - 200);
                     let proposed_top = 260 + Math.random() * (425 - 260);
                     let wouldOverlap = false;
@@ -448,6 +491,13 @@
                         cubicles.push({element: cubDiv});
                         placed = true;
                     }
+                }
+                if (!placed) {
+                    console.log("Could not find non-overlap position for cubicle, placing anyway");
+                    cubDiv.style.left = `${proposed_left}px`;
+                    cubDiv.style.top = `${proposed_top}px`;
+                    document.getElementById('game-area').appendChild(cubDiv);
+                    cubicles.push({element: cubDiv});
                 }
             });
 
@@ -629,77 +679,9 @@
                             }
 
                             if (!wouldOverlap) {
-                                // Apply close range adjustment if applicable
-                                let px = proposed_left + 37.5;
-                                let py = proposed_top + 37.5;
-                                let nx = parseFloat(nearest.element.style.left) + 37.5;
-                                let ny = parseFloat(nearest.element.style.top) + 37.5;
-                                let proposed_dist = Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
-
-                                if (minDist <= 10) {
-                                    if (proposed_dist < 5) {
-                                        // Push away
-                                        let dirX = px - nx;
-                                        let dirY = py - ny;
-                                        let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
-                                        if (dir_dist > 0) {
-                                            let adjust = 5 - proposed_dist;
-                                            let adjustX = (dirX / dir_dist) * adjust;
-                                            let adjustY = (dirY / dir_dist) * adjust;
-                                            proposed_left += adjustX;
-                                            proposed_top += adjustY;
-                                        }
-                                    } else if (proposed_dist > 20) {
-                                        // Pull closer
-                                        let dirX = nx - px;
-                                        let dirY = ny - py;
-                                        let dir_dist = Math.sqrt(dirX ** 2 + dirY ** 2);
-                                        if (dir_dist > 0) {
-                                            let adjust = proposed_dist - 20;
-                                            let adjustX = (dirX / dir_dist) * adjust;
-                                            let adjustY = (dirY / dir_dist) * adjust;
-                                            proposed_left += adjustX;
-                                            proposed_top += adjustY;
-                                        }
-                                    }
-                                }
-
-                                proposed_left = Math.max(0, Math.min(1000 - 75, proposed_left));
-                                proposed_top = Math.max(60, Math.min(700 - 60 - 75, proposed_top));
-
-                                // Final check after adjustment
-                                let finalOverlap = false;
-                                characters.forEach(other => {
-                                    if (other !== char && other.hp > 0) {
-                                        let o_left = parseFloat(other.element.style.left);
-                                        let o_top = parseFloat(other.element.style.top);
-                                        let p_right = proposed_left + 75;
-                                        let p_bottom = proposed_top + 75;
-                                        let o_right = o_left + 75;
-                                        let o_bottom = o_top + 75;
-                                        if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
-                                            finalOverlap = true;
-                                        }
-                                    }
-                                });
-                                cubicles.forEach(cub => {
-                                    let o_left = parseFloat(cub.element.style.left);
-                                    let o_top = parseFloat(cub.element.style.top);
-                                    let p_right = proposed_left + 75;
-                                    let p_bottom = proposed_top + 75;
-                                    let o_right = o_left + 75;
-                                    let o_bottom = o_top + 75;
-                                    if (!(p_right <= o_left || o_right <= proposed_left || p_bottom <= o_top || o_bottom <= proposed_top)) {
-                                        finalOverlap = true;
-                                    }
-                                });
-
-                                if (!finalOverlap) {
-                                    char.element.style.left = `${proposed_left}px`;
-                                    char.element.style.top = `${proposed_top}px`;
-                                }
+                                char.element.style.left = `${proposed_left}px`;
+                                char.element.style.top = `${proposed_top}px`;
                             }
-                            // If overlap, do nothing (no move)
                         }
                     }
                 });
