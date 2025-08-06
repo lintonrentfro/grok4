@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Battles - v25</title>
+    <title>Office Battles - v26</title>
     <style>
         body {
             background-color: lightgrey;
@@ -441,6 +441,7 @@
                     // Shuffle potential defenders for this attacker
                     let potentialDefenders = shuffle([...characters]);
 
+                    let attacked = false;
                     for (let defender of potentialDefenders) {
                         if (attacker === defender || defender.hp <= 0) continue;
 
@@ -450,7 +451,7 @@
                         let dy = parseFloat(defender.element.style.top) + 25;
                         let dist = Math.sqrt((ax - dx) ** 2 + (ay - dy) ** 2);
 
-                        if (dist < 60) {
+                        if (dist < 70) { // Increased range to 70
                             // Calculate hit chance
                             let dexDiff = attacker.dexterity - defender.dexterity;
                             let hitChanceDiff = dexDiff / 50;
@@ -496,9 +497,14 @@
                                 logMessage(`${attacker.name} misses ${defender.name} (hitRoll: ${hitRoll.toFixed(2)} >= hitChance: 0.6 + (${attacker.dexterity} - ${defender.dexterity}) / 50 = ${hitChance.toFixed(2)})`);
                             }
 
+                            attacked = true;
                             // Only one attack per turn per attacker
-                            return;
+                            break;
                         }
+                    }
+
+                    if (!attacked) {
+                        logMessage(`${attacker.name} has no target in range.`);
                     }
                 });
 
